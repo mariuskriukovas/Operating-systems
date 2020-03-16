@@ -84,6 +84,11 @@ public class Commands
             long result = op1 + op2;
             if (result > Constants.MAX_NUMBER) {
                 //ADD to RX
+                long fffff = (Constants.FFFFF_VALUE*Constants.F_VALUE);
+                int rl = (int)(result % fffff);
+                cpu.setRL(new Word(rl));
+                int rh = (int)(result /fffff);
+                cpu.setRH(new Word(rh));
             } else {
                 cpu.setRL(new Word((int) result));
             }
@@ -115,9 +120,14 @@ public class Commands
             int op1 = cpu.getRL().getNumber();
             stack.Pop();
             int op2 = cpu.getRL().getNumber();
-            long result = op1 * op2;
-            if (result > Constants.MAX_NUMBER) {
-                //result to RX
+            long result = (long) op1 * op2;
+            if (result > Constants.MAX_NUMBER)
+            {
+                long fffff = (Constants.FFFFF_VALUE*Constants.F_VALUE);
+                int rl = (int)(result % fffff);
+                cpu.setRL(new Word(rl));
+                int rh = (int)(result /fffff);
+                cpu.setRH(new Word(rh));
             } else {
                 cpu.setRL(new Word((int) result));
             }
@@ -385,6 +395,8 @@ public class Commands
     private void PRINTR(){
         System.out.println("PRINTR()");
         System.out.println("RL " + cpu.getRL().toString());
+        System.out.println("RH " + cpu.getRH().toString());
+        System.out.println("RX " + cpu.getRH().toString() + cpu.getRL().toString());
     }
 
 }
