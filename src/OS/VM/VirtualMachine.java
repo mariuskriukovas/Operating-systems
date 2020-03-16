@@ -24,16 +24,13 @@ public class VirtualMachine
 
     private void doYourMagic()
     {
-        int i = 0;
-        while (i<10)
+        while (true)
         {
             try {
                 String command = memory.getWord(cpu.getCS(cpu.getIC())).getASCIIFormat();
 
-
                 interpretator.execute(command);
                 cpu.increaseIC();
-                i++;
                 if(command.contains("HALT"))
                 {
                     return;
