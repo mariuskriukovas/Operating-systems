@@ -5,7 +5,7 @@ public class ByteWord
     private Object value;
 
 
-    ByteWord(int value)
+    ByteWord(Object value)
     {
         this.value = value;
     }

@@ -1,7 +1,7 @@
 package OS.VM;
 
 public class Constants {
-    public static final int WORD_LENGTH = 6;
+    public static final int WORD_LENGTH = 4;
     public static final int BLOCK_LENGTH = 256;
     public static final int BLOCK_NUMBER = 256;
     public static final int WORD_NUMBER = 65535;
@@ -37,6 +37,7 @@ public class Constants {
 
     public enum INTERRUPTION
     {
+        NONE,
         HALT,
     }
 }

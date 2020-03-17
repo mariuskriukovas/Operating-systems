@@ -10,12 +10,12 @@ public class CPU
     private final Word RH = new Word(0);
     private final Word RL = new Word(0);
 
-    private final ByteWord MODE = new ByteWord(0);
-    private final ByteWord C = new ByteWord(0);
+    private final ByteWord MODE = new ByteWord(Constants.INTERRUPTION.NONE);
+    private final ByteWord C = new ByteWord(Constants.INTERRUPTION.NONE);
 
-    private final ByteWord TI = new ByteWord(0);
-    private final ByteWord PI = new ByteWord(0);
-    private final ByteWord SI = new ByteWord(0);
+    private final ByteWord TI = new ByteWord(Constants.INTERRUPTION.NONE);
+    private final ByteWord PI = new ByteWord(Constants.INTERRUPTION.NONE);
+    private final ByteWord SI = new ByteWord(Constants.INTERRUPTION.NONE);
 
     private final Word SS = new Word(Constants.STACK_SEGMENT);
     private final Word DS = new Word(Constants.DATA_SEGMENT);
@@ -41,6 +41,12 @@ public class CPU
     public void decreaseSP() throws Exception {
         SP.setWord(SP.add(-1));
     }
+    public Word getSS(Word virtualAddress) throws Exception {
+        return new Word(SS.getNumber() + virtualAddress.getNumber());
+    }
+    public Word getSSValue(Word virtualAddress) throws Exception {
+        return memory.getWord(getSS(virtualAddress));
+    }
 
     public Word getRL() { return RL; }
     public void setRL(Word word) { RL.setWord(word); }
@@ -59,12 +65,18 @@ public class CPU
     public Word getDS(Word virtualAddress) throws Exception {
         return new Word(DS.getNumber() + virtualAddress.getNumber());
     }
+    public Word getDSValue(Word virtualAddress) throws Exception {
+        return memory.getWord(getDS(virtualAddress));
+    }
 
     public void setCS(Word virtualAddress, Word value) throws Exception {
         memory.setWord(value,CS.getNumber() + virtualAddress.getNumber());
     }
     public Word getCS(Word virtualAddress) throws Exception {
         return new Word(CS.getNumber() + virtualAddress.getNumber());
+    }
+    public Word getCSValue(Word virtualAddress) throws Exception {
+        return memory.getWord(getCS(virtualAddress));
     }
 
 

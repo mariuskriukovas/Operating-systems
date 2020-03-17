@@ -9,15 +9,15 @@ public class Memory {
 
     private final Word[][] vmMemory = new Word[Constants.BLOCK_NUMBER][Constants.BLOCK_LENGTH];
 
-    public Word getWord(int virtualAddress) throws Exception
+    public Word getWord(long virtualAddress) throws Exception
     {
         if(virtualAddress>Constants.WORD_NUMBER || virtualAddress<0)
         {
             throw new Exception("Not existing address");
         }
 
-        int block = virtualAddress/Constants.BLOCK_NUMBER;
-        int word = virtualAddress % Constants.BLOCK_NUMBER;
+        int block = (int) (virtualAddress/Constants.BLOCK_NUMBER);
+        int word = (int) (virtualAddress % Constants.BLOCK_NUMBER);
         return vmMemory[block][word];
     }
 
@@ -33,7 +33,7 @@ public class Memory {
     }
 
 
-    public void setWord(Word word, int virtualAddress) throws Exception {
+    public void setWord(Word word, long virtualAddress) throws Exception {
         getWord(virtualAddress).setWord(word);
     }
 

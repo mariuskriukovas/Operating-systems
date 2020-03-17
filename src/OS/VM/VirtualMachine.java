@@ -1,20 +1,30 @@
 package OS.VM;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class VirtualMachine
 {
     private CPU cpu = null;
     private Memory memory = null;
-    private Commands interpretator = null;
+    private ChannelDevice channelDevice;
+    private Interpretator interpretator;
 
-    VirtualMachine()
+    private HashMap<String, String> commandDictionary = null;
+
+    VirtualMachine(String sourceCode)
     {
         try {
             memory = new Memory();
             cpu = new CPU(memory);
-            interpretator = new Commands(cpu,memory);
-            uploadCode();
+            interpretator = new Interpretator(cpu,memory);
+            Parser parser = new Parser(sourceCode);
+            commandDictionary = parser.getCommands();
+            channelDevice = new ChannelDevice();
+
+            uploadDataSegment();
+            uploadCodeSegment();
+
             doYourMagic();
 
         }catch (Exception e) {
@@ -22,45 +32,44 @@ public class VirtualMachine
         }
     }
 
-    private void doYourMagic()
-    {
-        while (true)
-        {
-            try {
-                String command = memory.getWord(cpu.getCS(cpu.getIC())).getASCIIFormat();
 
-                interpretator.execute(command);
-                cpu.increaseIC();
-                if(command.contains("HALT"))
-                {
-                    return;
-                }
-            }catch (Exception e)
-            {
-                e.printStackTrace();
-            }
+    private void doYourMagic() throws Exception {
+        HashMap<String, String> vocabulary  = new HashMap<String, String>(100);
+        for(String key : commandDictionary.keySet()) {
+            vocabulary.put(commandDictionary.get(key), key);
+        }
+        while (!cpu.getSI().equals(Constants.INTERRUPTION.HALT)){
+            String hex = cpu.getCSValue(cpu.getIC()).getFirstHalf();
+            System.out.println(" ---------------- "+ vocabulary.get(hex));
+            interpretator.execute(vocabulary.get(hex));
+            cpu.increaseIC();
         }
     }
 
-    private void uploadCode()
-    {
-        try {
-            Interpretator interpretator =  new Interpretator("prog.txt");
-            interpretator.read();
-            interpretator.interpreter();
-            ArrayList<String>dataSegment = interpretator.getDataSegment();
-            for (int i = 0; i<dataSegment.size();i++)
-            {
-                cpu.setDS(new Word(i), new Word(dataSegment.get(i),Word.WORD_TYPE.NUMERIC));
-            }
-            ArrayList<String>codeSegment = interpretator.getCodeSegment();
-            for (int i = 0; i<codeSegment.size();i++)
-            {
-                cpu.setCS(new Word(i), new Word(codeSegment.get(i), Word.WORD_TYPE.SYMBOLIC));
-            }
-        }catch (Exception e){
-            e.printStackTrace();
+    private void uploadDataSegment() throws Exception {
+        channelDevice.readFile("data_seg.txt");
+        int i = 0;
+        while (channelDevice.hasNext()) {
+            cpu.setDS(new Word(i), new Word(channelDevice.readNextWord(), Word.WORD_TYPE.NUMERIC));
+            i++;
         }
     }
 
+    private void uploadCodeSegment() throws Exception {
+        channelDevice.readFile("code_seg.txt");
+        int i = 0;
+        while (channelDevice.hasNext()) {
+            String nextByte = channelDevice.readNextByte();
+            int value = Integer.parseInt(nextByte,16);
+            //Commands who has virtual address
+            if(value>=64 && value<80)
+            {
+                String bytes = nextByte+channelDevice.readNextByte()+ channelDevice.readNextByte();
+                cpu.setCS(new Word(i), new Word(bytes, Word.WORD_TYPE.NUMERIC));
+            }else {
+                cpu.setCS(new Word(i), new Word(nextByte.concat("0000"), Word.WORD_TYPE.NUMERIC));
+            }
+            i++;
+        }
+    }
 }
