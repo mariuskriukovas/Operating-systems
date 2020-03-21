@@ -1,30 +1,29 @@
 package OS.VM;
 
+import OS.Tools.Word;
+
 public class Stack {
 
-    private final Memory memory;
     private final CPU cpu;
 
-    Stack(Memory memory, CPU cpu)
+    Stack(CPU cpu)
     {
-        this.memory = memory;
         this.cpu = cpu;
     }
 
     public void Push() throws Exception {
-
-        memory.setWord(cpu.getRL(),cpu.getSP());
+        cpu.setSSValue(cpu.getRL());
         cpu.increaseSP();
     }
 
     public void Pop() throws Exception {
         cpu.decreaseSP();
-        cpu.setRL(memory.getWord(cpu.getSP()));
+        cpu.setRL(cpu.getSSValue());
     }
 
     public Word getNthElement(int n) throws Exception {
-        Word sp = cpu.getSP();
-        return memory.getWord(sp.add(n));
+        if(n>cpu.getSP().getNumber())throw new Exception("NO ELEMENTS IN STACK");
+        return cpu.getSSValue(n);
     }
 
 }

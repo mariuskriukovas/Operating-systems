@@ -1,4 +1,4 @@
-package OS.VM;
+package OS.Tools;
 
 public class Constants {
     public static final int WORD_LENGTH = 4;
@@ -6,10 +6,9 @@ public class Constants {
     public static final int BLOCK_NUMBER = 256;
     public static final int WORD_NUMBER = 65535;
 
-
     public static final int STACK_SEGMENT = 0;
-    public static final int DATA_SEGMENT = 21845;
-    public static final int CODE_SEGMENT = 43690;
+    public static final int DATA_SEGMENT = 21760;
+    public static final int CODE_SEGMENT = 43520;
 
     public static final long MAX_NUMBER = 16777215;
 
@@ -21,11 +20,9 @@ public class Constants {
 
     public enum C_VALUES
     {
-        EQUAL,
-        LESS,
-        MORE,
-        SYMBOLS,
-        NUMBERS,
+        ZERO,
+        ONE,
+        TWO
     }
 
     public enum FILE_SEG

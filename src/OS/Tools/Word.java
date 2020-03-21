@@ -1,4 +1,4 @@
-package OS.VM;
+package OS.Tools;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -12,16 +12,17 @@ public class Word {
         SYMBOLIC
     }
 
+    private final int WORD_LENGTH = 6;
     private WORD_TYPE type;
-    private int[] content = new int[Constants.WORD_LENGTH];
+    private int[] content = new int[WORD_LENGTH];
 
-    Word(String word, WORD_TYPE type) throws Exception {
+    public Word(String word, WORD_TYPE type) throws Exception {
         this.type = type;
         if(type == WORD_TYPE.NUMERIC)createNumericWord(word);
         if(type == WORD_TYPE.SYMBOLIC)createSymbolicWord(word);
     }
 
-    Word(long word) throws Exception {
+    public Word(long word) throws Exception {
         this.type = WORD_TYPE.NUMERIC;
         createNumericWord(word);
     }
@@ -29,7 +30,7 @@ public class Word {
 
     private String prepareWord(String word)
     {
-        while (word.length()<(Constants.WORD_LENGTH*2))
+        while (word.length()<WORD_LENGTH)
         {
             word = "0"+word;
         }
@@ -37,11 +38,9 @@ public class Word {
     }
     private int[] parseWord(String word)
     {
-        int j = 0;
-        int[] res = new int[Constants.WORD_LENGTH];
-        for(int i = 2; i<=word.length(); i=i+2) {
-            res[j] = Integer.parseInt(word.substring(i-2,i),16);
-            j++;
+        int[] res = new int[WORD_LENGTH];
+        for(int i = 0; i<word.length(); i++) {
+            res[i] = Integer.parseInt(Character.toString(word.charAt(i)),16);
         }
         return res;
     }
@@ -49,17 +48,17 @@ public class Word {
     private void  createNumericWord(String word) throws Exception {
         word = prepareWord(word);
         int[] parsedHex = parseWord(word);
-        if (Array.getLength(parsedHex)!=Constants.WORD_LENGTH)throw new Exception("Bad length");
+        if (Array.getLength(parsedHex)!=WORD_LENGTH)throw new Exception("Bad length");
         content = parsedHex;
     }
 
     private void  createNumericWord(long word) throws Exception {
-        createNumericWord(Long.toHexString(word));
+            createNumericWord(Long.toHexString(word));
     }
 
     private void  createSymbolicWord(String word) throws Exception {
-        if(word.length() != Constants.WORD_LENGTH)throw new Exception("Bad length for simbolic  word");
-        for (int i = 0; i<Constants.WORD_LENGTH; i++)
+        if(word.length() != WORD_LENGTH)throw new Exception("Bad length for simbolic  word");
+        for (int i = 0; i<WORD_LENGTH; i++)
         {
             content[i]= word.charAt(i);
         }
@@ -79,13 +78,6 @@ public class Word {
         return result;
     }
 
-    public String getFirstHalf(){
-        return Integer.toHexString((content[0]*Constants.FF_VALUE) + content[1]);
-    }
-    public String getSecondHalf(){
-        return Integer.toHexString ((content[2]*Constants.FF_VALUE) + content[3]);
-    }
-
     public int[] getContent(){
         return content;
     }
@@ -103,7 +95,6 @@ public class Word {
         for (int A : content)
         {
             String hex = Integer.toHexString(A);
-            if(A<16)hex = "0"+hex;
             result +=hex;
         }
         return result;
@@ -131,6 +122,5 @@ public class Word {
                 return getINTFormat();
         }
     }
-
 
 }

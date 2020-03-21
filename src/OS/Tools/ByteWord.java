@@ -1,15 +1,13 @@
-package OS.VM;
+package OS.Tools;
 
 public class ByteWord
 {
     private Object value;
 
-
-    ByteWord(Object value)
+    public ByteWord(Object value)
     {
         this.value = value;
     }
-
 
     public Object getValue()
     {

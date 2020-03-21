@@ -1,4 +1,4 @@
-package OS.VM;
+package OS.Tools;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -9,10 +9,6 @@ public class ChannelDevice  {
 
     private String hexCode = null;
     private int index = 0;
-
-    ChannelDevice() {
-
-    }
 
     public void readFile(String filename){
         try {
@@ -47,6 +43,11 @@ public class ChannelDevice  {
     }
     public boolean hasNext() {
         return index<hexCode.length();
+    }
+
+    public static void copyBlock(OS.Interfaces.Memory from, OS.Interfaces.Memory to, int fromBlock, int toBlock) throws Exception {
+        Word[] block =  from.getBlock(fromBlock);
+        to.setBlock(toBlock,block);
     }
 
 }

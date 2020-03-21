@@ -1,21 +1,37 @@
 package OS.VM;
 
+import OS.Tools.Constants;
+import OS.Tools.Word;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 
 public class Memory {
 
     private final Word[][] vmMemory = new Word[Constants.BLOCK_NUMBER][Constants.BLOCK_LENGTH];
 
+    Memory() {
+        for (int i = 0;i<Constants.BLOCK_NUMBER; i++)
+        {
+            for (int j = 0;j<Constants.BLOCK_LENGTH; j++)
+            {
+                try {
+                    vmMemory[i][j] = new Word(0);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public Word getWord(long virtualAddress) throws Exception
     {
         if(virtualAddress>Constants.WORD_NUMBER || virtualAddress<0)
         {
+            System.out.println(" - - - -" + virtualAddress);
             throw new Exception("Not existing address");
         }
-
         int block = (int) (virtualAddress/Constants.BLOCK_NUMBER);
         int word = (int) (virtualAddress % Constants.BLOCK_NUMBER);
         return vmMemory[block][word];
@@ -49,19 +65,6 @@ public class Memory {
             hex = "0"+hex;
         }
         return hex;
-    }
-    Memory() {
-        for (int i = 0;i<Constants.BLOCK_NUMBER; i++)
-        {
-            for (int j = 0;j<Constants.BLOCK_LENGTH; j++)
-            {
-                try {
-                    vmMemory[i][j] = new Word(i*256 + j);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 
     public void print()
