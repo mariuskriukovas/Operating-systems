@@ -25,13 +25,6 @@ public class Constants {
         TWO
     }
 
-    public enum FILE_SEG
-    {
-        DATSEG,
-        CODSEG
-    }
-
-
     public enum INTERRUPTION
     {
         NONE,

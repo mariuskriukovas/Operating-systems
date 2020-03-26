@@ -9,33 +9,44 @@ import OS.Tools.Word;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class VirtualMachine
-{
+public class VirtualMachine {
     private CPU cpu = null;
-    private ChannelDevice channelDevice;
     private Interpretator interpretator;
+    private RealCPU realCPU = null;
 
-    public VirtualMachine(String sourceCode, RealCPU realCPU)
-    {
+    private int currentDSBlock = 0;
+    private int currentSSBlock = 0;
+    private int currentCSBlock = 0;
+    private int internalBlockBegin = 0;
+
+    public VirtualMachine(String sourceCode, RealCPU realCPU, int internalBlockBegin) {
         try {
+            this.internalBlockBegin = internalBlockBegin;
+            this.realCPU = realCPU;
+            realCPU.loadVirtualMachineMemory(internalBlockBegin, currentCSBlock, currentDSBlock, currentSSBlock);
+
             cpu = new CPU(realCPU);
             interpretator = new Interpretator(cpu);
             Parser parser = new Parser(sourceCode);
-            channelDevice = new ChannelDevice();
 
             uploadDataSegment(parser.getDataSegment());
             uploadCodeSegment(parser.getCodeSegment());
 
             doYourMagic();
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public void setCurrentBlocks(int currentDSBlock, int currentSSBlock, int currentCSBlock) {
+        this.currentDSBlock = currentDSBlock;
+        this.currentSSBlock = currentSSBlock;
+        this.currentCSBlock = currentCSBlock;
+    }
 
     private void doYourMagic() throws Exception {
-        while (!cpu.getSI().equals(Constants.INTERRUPTION.HALT)){
+        while (!cpu.getSI().equals(Constants.INTERRUPTION.HALT)) {
             String command = cpu.getCSValue(cpu.getIC()).getASCIIFormat();
             interpretator.execute(command);
             cpu.increaseIC();
@@ -44,7 +55,7 @@ public class VirtualMachine
 
     private void uploadDataSegment(ArrayList<String> dataSegment) throws Exception {
         int i = 0;
-        for (String data:dataSegment){
+        for (String data : dataSegment) {
             cpu.setDS(new Word(i), new Word(data, Word.WORD_TYPE.NUMERIC));
             i++;
         }
@@ -52,7 +63,7 @@ public class VirtualMachine
 
     private void uploadCodeSegment(ArrayList<String> codeSegment) throws Exception {
         int i = 0;
-        for (String command:codeSegment){
+        for (String command : codeSegment) {
             cpu.setCS(new Word(i), new Word(command, Word.WORD_TYPE.SYMBOLIC));
             i++;
         }

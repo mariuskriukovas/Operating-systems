@@ -85,7 +85,7 @@ public class Interpretator
             stack.Pop();
             long op2 = cpu.getRL().getNumber();
             long result = op1 + op2;
-            long manyF = Long.parseLong("ffffffff",16);
+            long manyF = Long.parseLong("ffffff",16);
             if (result > manyF) {
                 //ADD to RX
                 long rl = (result % manyF);
@@ -128,11 +128,11 @@ public class Interpretator
             BigInteger op1Big = new BigInteger(Long.toString(op1));
             BigInteger op2Big = new BigInteger(Long.toString(op2));
             BigInteger result = op1Big.multiply(op2Big);
-            BigInteger manyF = new BigInteger(Long.toString(Long.parseLong("ffffffff",16)));
+            BigInteger manyF = new BigInteger(Long.toString(Long.parseLong("ffffff",16)));
 
             if (result.compareTo(manyF)==1) {
                 //ADD to RX
-                manyF = new BigInteger(Long.toString(Long.parseLong("100000000",16)));
+                manyF = new BigInteger(Long.toString(Long.parseLong("1000000",16)));
                 long rl = Long.parseLong(result.mod(manyF).toString());
                 cpu.setRL(new Word(rl));
                 long rh = Long.parseLong(result.divide(manyF).toString());
@@ -345,8 +345,6 @@ public class Interpretator
     private void SWAP()
     {
         System.out.println("SWAP()");
-        System.out.println("RH" + cpu.getRH());
-        System.out.println("RL" + cpu.getRL());
         try {
             Word rh = new Word(cpu.getRH().getNumber());
             cpu.setRH(cpu.getRL());
@@ -354,8 +352,6 @@ public class Interpretator
         }catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("RH" + cpu.getRH());
-        System.out.println("RL" + cpu.getRL());
     }
     private void LOADB() throws Exception {
         String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
@@ -371,7 +367,7 @@ public class Interpretator
         String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
         System.out.println("LOADW()");
         try {
-            cpu.setRL(cpu.getDSValue(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC)));
+            cpu.setRL(cpu.getDSValue(new Word(virtualAddress, Word.WORD_TYPE.SYMBOLIC)));
             cpu.setC(Constants.C_VALUES.ONE);
         }catch (Exception e) {
             e.printStackTrace();
@@ -381,10 +377,8 @@ public class Interpretator
         String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
         System.out.println("SAVE()");
         try {
-//            Word realVirtualAddress = cpu.getDS(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
-            //System.out.println("Ar " + cpu.getDSValue(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC)) + " == " + memory.getWord(realVirtualAddress))
-            //memory.setWord(cpu.getRL(), realVirtualAddress);
-            throw new Exception("Not implemented");
+            Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+            cpu.setDS(address,cpu.getRL());
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -397,12 +391,11 @@ public class Interpretator
         String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
         System.out.println("PUT()");
         try {
-            Word realVirtualAddress = cpu.getDS(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
             System.out.println("PUTS values :");
             for (int i =0; i<Constants.F_VALUE; i++)
             {
-//                System.out.println(Arrays.toString(memory.getWord(realVirtualAddress.add(i)).getContent()));
-                throw new Exception("Not implemented");
+                Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC).add(i);
+                System.out.println(address + " ---> " + cpu.getDSValue(address));
             }
 
         }catch (Exception e) {
@@ -416,10 +409,10 @@ public class Interpretator
 
     private void PRINTR(){
         System.out.println("PRINTR()");
-        System.out.println("RL " + cpu.getRL().toString());
-        System.out.println("RH " + cpu.getRH().toString());
-        System.out.println("RX " + cpu.getRH().toString() + cpu.getRL().toString());
-        System.out.println("C " + cpu.getC().toString());
+        System.out.println("RL ---> " + cpu.getRL().toString());
+        System.out.println("RH ---> " + cpu.getRH().toString());
+        System.out.println("RX ---> " + cpu.getRH().toString() + cpu.getRL().toString());
+        System.out.println("C ---> " + cpu.getC().toString());
     }
 
 }

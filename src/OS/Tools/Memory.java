@@ -50,7 +50,7 @@ public class Memory implements OS.Interfaces.Memory
         if (block>=BLOCK_NUMBER) throw new Exception("Not existing block");
         return memory[block];
     }
-    public void setBlock(int block, Word[] data)throws Exception {
+    public  void setBlock(int block, Word[] data)throws Exception {
         if (block>=BLOCK_NUMBER) throw new Exception("Not existing block");
         if (data.length!=BLOCK_LENGTH) throw new Exception("BAD block length");
         memory[block]= data;
