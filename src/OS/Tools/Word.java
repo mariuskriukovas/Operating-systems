@@ -3,8 +3,13 @@ package OS.Tools;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+import static OS.Tools.Word.WORD_TYPE.NUMERIC;
+import static OS.Tools.Word.WORD_TYPE.SYMBOLIC;
+
 
 public class Word {
+
+    public static final String EMPTY = "";
 
     public enum WORD_TYPE
     {
@@ -18,12 +23,12 @@ public class Word {
 
     public Word(String word, WORD_TYPE type) throws Exception {
         this.type = type;
-        if(type == WORD_TYPE.NUMERIC)createNumericWord(word);
-        if(type == WORD_TYPE.SYMBOLIC)createSymbolicWord(word);
+        if(type == NUMERIC)createNumericWord(word);
+        if(type == SYMBOLIC)createSymbolicWord(word);
     }
 
     public Word(long word) throws Exception {
-        this.type = WORD_TYPE.NUMERIC;
+        this.type = NUMERIC;
         createNumericWord(word);
     }
 
@@ -83,7 +88,7 @@ public class Word {
     }
 
     public String getASCIIFormat() {
-        String result = "";
+        String result = EMPTY;
         for (int A : content)
         {
             result += ((char)A);
@@ -91,7 +96,7 @@ public class Word {
         return result;
     };
     public String getHEXFormat() {
-        String result = "";
+        String result = EMPTY;
         for (int A : content)
         {
             String hex = Integer.toHexString(A);
@@ -101,7 +106,7 @@ public class Word {
     };
 
     public String getINTFormat() {
-        String result = "";
+        String result = EMPTY;
         for (int A : content)
         {
             result += (A + " ");

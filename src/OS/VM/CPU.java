@@ -3,7 +3,13 @@ package OS.VM;
 import OS.RM.RealCPU;
 import OS.Tools.ByteWord;
 import OS.Tools.Constants;
+import OS.Tools.Constants.INTERRUPTION;
 import OS.Tools.Word;
+
+import static OS.Tools.Constants.CODE_SEGMENT;
+import static OS.Tools.Constants.DATA_SEGMENT;
+import static OS.Tools.Constants.INTERRUPTION.NONE;
+import static OS.Tools.Constants.STACK_SEGMENT;
 
 public class CPU
 {
@@ -15,16 +21,16 @@ public class CPU
     private final Word RH = new Word(0);
     private final Word RL = new Word(0);
 
-    private final ByteWord MODE = new ByteWord(Constants.INTERRUPTION.NONE);
-    private final ByteWord C = new ByteWord(Constants.INTERRUPTION.NONE);
+    private final ByteWord MODE = new ByteWord(NONE);
+    private final ByteWord C = new ByteWord(NONE);
 
-    private final ByteWord TI = new ByteWord(Constants.INTERRUPTION.NONE);
-    private final ByteWord PI = new ByteWord(Constants.INTERRUPTION.NONE);
-    private final ByteWord SI = new ByteWord(Constants.INTERRUPTION.NONE);
+    private final ByteWord TI = new ByteWord(NONE);
+    private final ByteWord PI = new ByteWord(NONE);
+    private final ByteWord SI = new ByteWord(NONE);
 
-    private final Word SS = new Word(Constants.STACK_SEGMENT);
-    private final Word DS = new Word(Constants.DATA_SEGMENT);
-    private final Word CS = new Word(Constants.CODE_SEGMENT);
+    private final Word SS = new Word(STACK_SEGMENT);
+    private final Word DS = new Word(DATA_SEGMENT);
+    private final Word CS = new Word(CODE_SEGMENT);
 
     private final RealCPU realCPU;
 
@@ -58,8 +64,8 @@ public class CPU
     public void increaseIC() throws Exception { IC.setWord(IC.add(1)); }
 
 //
-    public Constants.INTERRUPTION getSI() { return (Constants.INTERRUPTION) SI.getValue(); }
-    public void setSI(Constants.INTERRUPTION flag) { SI.setValue(flag); }
+    public INTERRUPTION getSI() { return (INTERRUPTION) SI.getValue(); }
+    public void setSI(INTERRUPTION flag) { SI.setValue(flag); }
 
     public Constants.C_VALUES getC() { return (Constants.C_VALUES) C.getValue(); }
     public void setC(Constants.C_VALUES flag) { C.setValue(flag); }
@@ -67,17 +73,17 @@ public class CPU
 //--------------------------------------------------------------------------------------------------------------
 
     public void setDS(Word virtualAddress, Word value) throws Exception {
-        //System.out.println("setDS ---->" + virtualAddress);
-        //System.out.println("DS value ---->" + value);
-        realCPU.setDS(getDS(virtualAddress),value);
+        System.out.println("setDS ---->" + virtualAddress);
+        System.out.println("DS value ---->" + value);
+        realCPU.setDS(getDS(virtualAddress),value);  // WTF: Ar tai nereiškia kad susipainios aadresai?
         //memory.setWord(value,DS.getNumber() + virtualAddress.getNumber());
     }
     public Word getDS(Word virtualAddress) throws Exception {
         return new Word(DS.getNumber() + virtualAddress.getNumber());
     }
     public Word getDSValue(Word virtualAddress) throws Exception {
-        //System.out.println("getDS ---->" + virtualAddress);
-        //System.out.println("DS value ---->" + realCPU.getDSValue(getDS(virtualAddress)));
+        System.out.println("getDS ---->" + virtualAddress);
+        System.out.println("DS value ---->" + realCPU.getDSValue(getDS(virtualAddress)));
         //return memory.getWord(getDS(virtualAddress));
         return realCPU.getDSValue(getDS(virtualAddress));
     }

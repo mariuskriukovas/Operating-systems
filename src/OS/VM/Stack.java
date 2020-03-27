@@ -6,8 +6,7 @@ public class Stack {
 
     private final CPU cpu;
 
-    Stack(CPU cpu)
-    {
+    Stack(CPU cpu) {
         this.cpu = cpu;
     }
 
@@ -22,7 +21,7 @@ public class Stack {
     }
 
     public Word getNthElement(int n) throws Exception {
-        if(n>cpu.getSP().getNumber())throw new Exception("NO ELEMENTS IN STACK");
+        if (n > cpu.getSP().getNumber()) throw new Exception("NO ELEMENTS IN STACK");
         return cpu.getSSValue(n);
     }
 
