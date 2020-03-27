@@ -53,4 +53,35 @@ public class RealMachine {
         return new VirtualMachine(fileName, realCPU, internalBlockBegin);
     }
 
+    public ExternalMemory getExternalMemory() {
+        return externalMemory;
+    }
+
+    public void setExternalMemory(ExternalMemory externalMemory) {
+        this.externalMemory = externalMemory;
+    }
+
+    public InternalMemory getInternalMemory() {
+        return internalMemory;
+    }
+
+    public void setInternalMemory(InternalMemory internalMemory) {
+        this.internalMemory = internalMemory;
+    }
+
+    public ArrayList<VirtualMachine> getVirtualMachines() {
+        return virtualMachines;
+    }
+
+    public void setVirtualMachines(ArrayList<VirtualMachine> virtualMachines) {
+        this.virtualMachines = virtualMachines;
+    }
+
+    public RealCPU getRealCPU() {
+        return realCPU;
+    }
+
+    public void setRealCPU(RealCPU realCPU) {
+        this.realCPU = realCPU;
+    }
 }

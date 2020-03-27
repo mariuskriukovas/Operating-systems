@@ -415,4 +415,11 @@ public class Interpretator
         System.out.println("C ---> " + cpu.getC().toString());
     }
 
+    public CPU getCpu() {
+        return cpu;
+    }
+
+    public Stack getStack() {
+        return stack;
+    }
 }

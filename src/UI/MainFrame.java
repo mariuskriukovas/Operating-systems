@@ -5,36 +5,18 @@ import OS.RM.RealMachine;
 import OS.VM.VirtualMachine;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.InputMethodEvent;
-import java.awt.event.InputMethodListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainFrame extends JFrame {
 
 
-    private JTextField textFieldRMPI;
-    private JTextField textFieldRMIC;
     private JList listStackSegment;
-    private JTextField textFieldRMTI;
     private JList listCodeSegment;
-    private JTextField textFieldRMC;
-    private JTextField textFieldRMSI;
-    private JFormattedTextField textFieldRMSP;
-    private JTextField textFieldRMSS;
-    private JTextField textFieldRMDS;
-    private JTextField textFieldRMCS;
     private JComboBox comboBoxVirtualMachineSelector;
     private JTextField textFieldVRIC;
-    private JTextField textFieldVRSP;
-    private JTextField textFieldVRSS;
-    private JTextField textFieldVRDS;
-    private JTextField textFieldVRCS;
     private JTextArea textAreaInput;
     private JButton ENTRYButton;
     private JLabel labelStackSegment;
@@ -42,7 +24,6 @@ public class MainFrame extends JFrame {
     private JLabel labelCodeSegment;
     private JLabel labelRMPI;
     private JLabel labelRMSI;
-    private JLabel labelRMSP;
     private JLabel labelRMSS;
     private JLabel labelRMCS;
     private JLabel labelRMDS;
@@ -60,7 +41,7 @@ public class MainFrame extends JFrame {
     private JLabel labelVMDS;
     private JLabel labelVMSS;
     private JLabel labelVMCS;
-    private JLabel labelIc;
+    private JLabel labelPTR;
     private JPanel OperatingSystemFrame;
     private JScrollPane scrollRMCS;
     private JScrollPane scrollRMSS;
@@ -70,6 +51,20 @@ public class MainFrame extends JFrame {
     private JLabel labelVRC;
     private JLabel labelVRRL;
     private JLabel labelVirMRH;
+    private JLabel labelVRMSP;
+    private JLabel labelVRMSS;
+    private JLabel labelVRMCS;
+    private JLabel labelVRMDS;
+    private JLabel labelRLMPTR;
+    private JLabel labelRLMPI;
+    private JLabel labelRLMSI;
+    private JLabel labelRLMSS;
+    private JLabel labelRLMCS;
+    private JLabel labelRLMDS;
+    private JLabel labelRLMTI;
+    private JLabel labelRLMC;
+    private JLabel labelRMMode;
+    private JLabel labelRLMMode;
 
     private RealMachine realMachine;
     private Parser parser;
@@ -99,17 +94,31 @@ public class MainFrame extends JFrame {
         listCodeSegment.setListData(parser.getCodeSegment().toArray());
         scrollRMCS.setViewportView(listCodeSegment);
 
+        String virtualMachineIndex = (String)comboBoxVirtualMachineSelector.getSelectedItem();
 
-        VirtualMachine virtualMachine = realMachine.getVirtualMachines().get(0);
-        labelVRIC.setText(virtualMachine.getCpu().getIC().getASCIIFormat());
-        labelVirMRH.setText(virtualMachine.getCpu().getRH().getASCIIFormat());
-        labelVRRL.setText(virtualMachine.getCpu().getRL().getASCIIFormat());
-        labelCodeSegment.setText(virtualMachine.getCpu().getCSValue(virtualMachine.getCpu().getIC()).getASCIIFormat());
-        //        textFieldVRIC.setActionCommand("Penis");
-//        listStackSegment.setListData(realMachine.);
-//        scrollRMSS.setViewportView(listStackSegment);
+        //Set virtual Machine
+        VirtualMachine virtualMachine = realMachine.getVirtualMachines().get(Integer.parseInt(virtualMachineIndex)-1);
+        labelVRIC.setText(virtualMachine.getCpu().getIC().getHEXFormat());
+        labelVirMRH.setText(virtualMachine.getCpu().getRH().getHEXFormat());
+        labelVRRL.setText(virtualMachine.getCpu().getRL().getHEXFormat());
+        labelVRC.setText(virtualMachine.getCpu().getC().name());
+        labelVRMSP.setText(virtualMachine.getCpu().getSP().getHEXFormat());
+        labelVRMSS.setText(virtualMachine.getCpu().getSSValue().getHEXFormat());
+        labelVRMCS.setText(virtualMachine.getCpu().getCSValue(virtualMachine.getCpu().getIC()).getHEXFormat());
+        labelVRMDS.setText(virtualMachine.getCpu().getDSValue(virtualMachine.getCpu().getIC()).getHEXFormat());
+        //SET REAL MACHINE
+        labelRLMC.setText(realMachine.getRealCPU().getC().getValue().toString());
+        labelRLMPI.setText(realMachine.getRealCPU().getPI().getValue().toString());
+        labelRLMTI.setText(realMachine.getRealCPU().getTI().getValue().toString());
+        labelRLMSI.setText(realMachine.getRealCPU().getSI().getValue().toString());
+        labelRLMMode.setText(realMachine.getRealCPU().getMODE().getValue().toString());
 
-//        listExteriorMemory.setListData();
+        labelRLMPTR.setText(realMachine.getRealCPU().getPTRValue(0).getHEXFormat());
+        labelRLMSS.setText(realMachine.getRealCPU().getSS().getHEXFormat());
+        labelRLMDS.setText(realMachine.getRealCPU().getDS().getHEXFormat());
+        labelRLMCS.setText(realMachine.getRealCPU().getCS().getHEXFormat());
+
+
 
 
     }
