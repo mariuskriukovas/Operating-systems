@@ -13,38 +13,14 @@ import java.util.Arrays;
 public class MainFrame extends JFrame {
 
 
-    private JList listStackSegment;
     private JList listCodeSegment;
     private JComboBox comboBoxVirtualMachineSelector;
     private JTextField textFieldVRIC;
     private JTextArea textAreaInput;
     private JButton ENTRYButton;
-    private JLabel labelStackSegment;
-    private JLabel labelDataSegment;
-    private JLabel labelCodeSegment;
-    private JLabel labelRMPI;
-    private JLabel labelRMSI;
-    private JLabel labelRMSS;
-    private JLabel labelRMCS;
-    private JLabel labelRMDS;
-    private JLabel labelRMTI;
-    private JLabel labelRMC;
-    private JLabel labelRMSegmentPointers;
-    private JLabel labelRM;
-    private JLabel labelVM;
-    private JLabel labelVMC;
-    private JLabel labelVMIC;
-    private JLabel labelVMRX;
-    private JLabel labelVMRH;
-    private JLabel labelVMRL;
-    private JLabel labelVMSP;
-    private JLabel labelVMDS;
-    private JLabel labelVMSS;
-    private JLabel labelVMCS;
-    private JLabel labelPTR;
     private JPanel OperatingSystemFrame;
+    private JTabbedPane tabbedPane1;
     private JScrollPane scrollRMCS;
-    private JScrollPane scrollRMSS;
     private JScrollPane scrollRMDS;
     private JList listDataSegment;
     private JLabel labelVRIC;
@@ -63,8 +39,33 @@ public class MainFrame extends JFrame {
     private JLabel labelRLMDS;
     private JLabel labelRLMTI;
     private JLabel labelRLMC;
-    private JLabel labelRMMode;
     private JLabel labelRLMMode;
+    private JLabel labelRM;
+    private JLabel labelRMC;
+    private JLabel labelRMTI;
+    private JLabel labelRMSegmentPointers;
+    private JLabel labelRMDS;
+    private JLabel labelRMCS;
+    private JLabel labelRMSS;
+    private JLabel labelRMPI;
+    private JLabel labelPTR;
+    private JLabel labelRMSI;
+    private JLabel labelRMMode;
+    private JLabel labelDataSegment;
+    private JLabel labelCodeSegment;
+    private JLabel labelStackSegment;
+    private JScrollPane scrollRMSS;
+    private JList listStackSegment;
+    private JLabel labelVMRX;
+    private JLabel labelVMRH;
+    private JLabel labelVMRL;
+    private JLabel labelVMDS;
+    private JLabel labelVMCS;
+    private JLabel labelVMSS;
+    private JLabel labelVMSP;
+    private JLabel labelVM;
+    private JLabel labelVMIC;
+    private JLabel labelVMC;
 
     private RealMachine realMachine;
     private Parser parser;
@@ -117,9 +118,6 @@ public class MainFrame extends JFrame {
         labelRLMSS.setText(realMachine.getRealCPU().getSS().getHEXFormat());
         labelRLMDS.setText(realMachine.getRealCPU().getDS().getHEXFormat());
         labelRLMCS.setText(realMachine.getRealCPU().getCS().getHEXFormat());
-
-
-
 
     }
 
