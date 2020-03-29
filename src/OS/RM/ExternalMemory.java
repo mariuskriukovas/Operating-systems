@@ -1,7 +1,9 @@
 package OS.RM;
 
 
-public class ExternalMemory extends OS.Tools.Memory {
+import OS.Tools.Memory;
+
+public class ExternalMemory extends Memory {
 
     private static final int BLOCK_NUMBER = 65536;// FFFF
     private static final int BLOCK_LENGTH = 256;// FF

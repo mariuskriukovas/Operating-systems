@@ -6,7 +6,7 @@ public class Constants {
     public static final int BLOCK_NUMBER = 256;
     public static final int WORD_NUMBER = 65535;
 
-    public static final int STACK_SEGMENT = 0;
+    public static final int STACK_SEGMENT = 0;  // WTF kodel cia sittie skaiciai?
     public static final int DATA_SEGMENT = 21760;
     public static final int CODE_SEGMENT = 43520;
 

@@ -68,4 +68,60 @@ public class VirtualMachine {
             i++;
         }
     }
+
+    public CPU getCpu() {
+        return cpu;
+    }
+
+    public void setCpu(CPU cpu) {
+        this.cpu = cpu;
+    }
+
+    public Interpretator getInterpretator() {
+        return interpretator;
+    }
+
+    public void setInterpretator(Interpretator interpretator) {
+        this.interpretator = interpretator;
+    }
+
+    public RealCPU getRealCPU() {
+        return realCPU;
+    }
+
+    public void setRealCPU(RealCPU realCPU) {
+        this.realCPU = realCPU;
+    }
+
+    public int getCurrentDSBlock() {
+        return currentDSBlock;
+    }
+
+    public void setCurrentDSBlock(int currentDSBlock) {
+        this.currentDSBlock = currentDSBlock;
+    }
+
+    public int getCurrentSSBlock() {
+        return currentSSBlock;
+    }
+
+    public void setCurrentSSBlock(int currentSSBlock) {
+        this.currentSSBlock = currentSSBlock;
+    }
+
+    public int getCurrentCSBlock() {
+        return currentCSBlock;
+    }
+
+    public void setCurrentCSBlock(int currentCSBlock) {
+        this.currentCSBlock = currentCSBlock;
+    }
+
+    public int getInternalBlockBegin() {
+        return internalBlockBegin;
+    }
+
+    public void setInternalBlockBegin(int internalBlockBegin) {
+        this.internalBlockBegin = internalBlockBegin;
+    }
 }

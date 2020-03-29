@@ -200,4 +200,56 @@ public class RealCPU {
         currentDSBlock = prepareBlock(virtualAddress, DS, currentDSBlock);
         return internalMemory.getWord(getDS(virtualAddress));
     }
+
+    public ByteWord getMODE() {
+        return MODE;
+    }
+
+    public ByteWord getC() {
+        return C;
+    }
+
+    public ByteWord getTI() {
+        return TI;
+    }
+
+    public ByteWord getPI() {
+        return PI;
+    }
+
+    public ByteWord getSI() {
+        return SI;
+    }
+
+    public int getCurrentDSBlock() {
+        return currentDSBlock;
+    }
+
+    public void setCurrentDSBlock(int currentDSBlock) {
+        this.currentDSBlock = currentDSBlock;
+    }
+
+    public int getCurrentSSBlock() {
+        return currentSSBlock;
+    }
+
+    public void setCurrentSSBlock(int currentSSBlock) {
+        this.currentSSBlock = currentSSBlock;
+    }
+
+    public int getCurrentCSBlock() {
+        return currentCSBlock;
+    }
+
+    public void setCurrentCSBlock(int currentCSBlock) {
+        this.currentCSBlock = currentCSBlock;
+    }
+
+    public Memory getInternalMemory() {
+        return internalMemory;
+    }
+
+    public Memory getExternalMemory() {
+        return externalMemory;
+    }
 }
