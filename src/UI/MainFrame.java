@@ -2,6 +2,7 @@ package UI;
 
 import OS.RM.Parser;
 import OS.RM.RealMachine;
+import OS.Tools.ByteWord;
 import OS.VM.VirtualMachine;
 
 import javax.swing.*;
@@ -9,6 +10,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static OS.Tools.Constants.INTERRUPTION.*;
+import static java.lang.Integer.parseInt;
 
 public class MainFrame extends JFrame {
 
@@ -66,28 +70,20 @@ public class MainFrame extends JFrame {
     private JLabel labelVM;
     private JLabel labelVMIC;
     private JLabel labelVMC;
+    private JButton INCSIButton;
 
     private RealMachine realMachine;
     private Parser parser;
 
     public MainFrame(RealMachine realMachine) throws Exception {
         setTitle("OPERATING_SYSTEMS");
-        setSize(1500, 500);
+        setSize(500, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         add(OperatingSystemFrame);
 
         this.parser = new Parser("prog.txt");
         this.realMachine = realMachine;
 
-        ENTRYButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-
-                String s[] = textAreaInput.getText().split("\\r?\\n");
-                ArrayList<String> arrList = new ArrayList<>(Arrays.asList(s));
-                System.out.println(arrList);
-            }
-        });
 
         listDataSegment.setListData(parser.getDataSegment().toArray());
         scrollRMDS.setViewportView(listDataSegment);
@@ -98,7 +94,36 @@ public class MainFrame extends JFrame {
         String virtualMachineIndex = (String)comboBoxVirtualMachineSelector.getSelectedItem();
 
         //Set virtual Machine
-        VirtualMachine virtualMachine = realMachine.getVirtualMachines().get(Integer.parseInt(virtualMachineIndex)-1);
+        setupVirtualMachine(realMachine, virtualMachineIndex);
+        //SET REAL MACHINE
+        SetupRealMachine(realMachine);
+
+        INCSIButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                ByteWord si = realMachine.getRealCPU().getSI();
+
+                if (si.getValue() == NONE) si.setValue(1);
+                else realMachine.getRealCPU().getSI().setValue((parseInt(si.getValue().toString()) + 1));
+                System.out.println(realMachine.getRealCPU().getSI().getValue());
+            }
+        });
+
+        ENTRYButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+
+                String s[] = textAreaInput.getText().split("\\r?\\n");
+                ArrayList<String> arrList = new ArrayList<>(Arrays.asList(s));
+                System.out.println(arrList);
+                textAreaInput.setText("");
+            }
+        });
+
+    }
+
+    private void setupVirtualMachine(RealMachine realMachine, String virtualMachineIndex) throws Exception {
+        VirtualMachine virtualMachine = realMachine.getVirtualMachines().get(parseInt(virtualMachineIndex)-1);
         labelVRIC.setText(virtualMachine.getCpu().getIC().getHEXFormat());
         labelVirMRH.setText(virtualMachine.getCpu().getRH().getHEXFormat());
         labelVRRL.setText(virtualMachine.getCpu().getRL().getHEXFormat());
@@ -107,7 +132,9 @@ public class MainFrame extends JFrame {
         labelVRMSS.setText(virtualMachine.getCpu().getSSValue().getHEXFormat());
         labelVRMCS.setText(virtualMachine.getCpu().getCSValue(virtualMachine.getCpu().getIC()).getHEXFormat());
         labelVRMDS.setText(virtualMachine.getCpu().getDSValue(virtualMachine.getCpu().getIC()).getHEXFormat());
-        //SET REAL MACHINE
+    }
+
+    private void SetupRealMachine(RealMachine realMachine) throws Exception {
         labelRLMC.setText(realMachine.getRealCPU().getC().getValue().toString());
         labelRLMPI.setText(realMachine.getRealCPU().getPI().getValue().toString());
         labelRLMTI.setText(realMachine.getRealCPU().getTI().getValue().toString());
@@ -118,7 +145,6 @@ public class MainFrame extends JFrame {
         labelRLMSS.setText(realMachine.getRealCPU().getSS().getHEXFormat());
         labelRLMDS.setText(realMachine.getRealCPU().getDS().getHEXFormat());
         labelRLMCS.setText(realMachine.getRealCPU().getCS().getHEXFormat());
-
     }
 
     private void createUIComponents() {
