@@ -1,12 +1,14 @@
 package OS.RM;
 
-import UI.MainFrame;
+
+import UI.OSFrame;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        RealMachine realMachine = new RealMachine();
-        MainFrame userInterface = new MainFrame(realMachine);
-        userInterface.setVisible(true);
+        OSFrame screen = new OSFrame();
+        screen.setVisible(true);
+        RealMachine realMachine = new RealMachine(screen);
+
     }
 }

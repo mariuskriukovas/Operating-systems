@@ -124,7 +124,7 @@ public class Word {
             case SYMBOLIC:
                 return getASCIIFormat();
             default:
-                return getINTFormat();
+                return getASCIIFormat();
         }
     }
 

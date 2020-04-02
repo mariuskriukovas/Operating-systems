@@ -5,6 +5,10 @@ import OS.Tools.ByteWord;
 import OS.Tools.ChannelDevice;
 import OS.Tools.Constants;
 import OS.Tools.Word;
+import UI.OSFrame;
+import UI.RMPanel;
+import UI.VMPanel;
+
 
 public class RealCPU {
 
@@ -27,9 +31,16 @@ public class RealCPU {
     private final Memory internalMemory;
     private final Memory externalMemory;
 
-    RealCPU(Memory internal, Memory external) throws Exception {
+    private final RMPanel RMScreen;
+    private final VMPanel VMScreen;
+
+
+    RealCPU(Memory internal, Memory external, OSFrame screen) throws Exception {
         this.externalMemory = external;
         this.internalMemory = internal;
+
+        RMScreen = screen.getScreenForRealMachine();
+        VMScreen = screen.getScreenForVirtualMachine();
     }
 
 
@@ -59,10 +70,17 @@ public class RealCPU {
             loadRegisterBlock(DS, currentDSBlock);
             loadRegisterBlock(SS, currentSSBlock);
 
+            RMScreen.setSIRegister(SI);
+            RMScreen.setTIRegister(TI);
+            RMScreen.setPIRegister(PI);
+            RMScreen.setCRegister(C);
+            RMScreen.setMODERegister(MODE);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     public int[] saveVirtualMachineMemory() {
         try {
@@ -81,6 +99,7 @@ public class RealCPU {
 
     public void setPTR(Word word) {
         PTR.setWord(word);
+        RMScreen.setPTRRegister(PTR);
     }
 
     public Word getPTRValue(int block) throws Exception {
@@ -93,14 +112,17 @@ public class RealCPU {
 
     public void setDS(Word word) {
         DS.setWord(word);
+        RMScreen.setDSRegister(DS);
     }
 
     public void setSS(Word word) {
         SS.setWord(word);
+        RMScreen.setSSRegister(SS);
     }
 
     public void setCS(Word word) {
         CS.setWord(word);
+        RMScreen.setCSRegister(CS);
     }
 
     public Word getDS() {
@@ -154,6 +176,7 @@ public class RealCPU {
         currentCSBlock = prepareBlock(virtualAddress, CS, currentCSBlock);
         int word = getWordFromAddress(virtualAddress);
         internalMemory.setWord(value, CS.getNumber() + word);
+        VMScreen.setCodeSegment(internalMemory.getBlock(getBlockFromAddress(CS)));
     }
 
     public Word getCS(Word virtualAddress) throws Exception {
@@ -171,6 +194,7 @@ public class RealCPU {
         currentSSBlock = prepareBlock(virtualAddress, SS, currentSSBlock);
         int word = getWordFromAddress(virtualAddress);
         internalMemory.setWord(value, SS.getNumber() + word);
+        VMScreen.setStackSegment(internalMemory.getBlock(getBlockFromAddress(SS)));
     }
 
     public Word getSS(Word virtualAddress) throws Exception {
@@ -188,6 +212,7 @@ public class RealCPU {
         currentDSBlock = prepareBlock(virtualAddress, DS, currentDSBlock);
         int word = getWordFromAddress(virtualAddress);
         internalMemory.setWord(value, DS.getNumber() + word);
+        VMScreen.setDataSegment(internalMemory.getBlock(getBlockFromAddress(DS)));
     }
 
     public Word getDS(Word virtualAddress) throws Exception {
@@ -219,37 +244,5 @@ public class RealCPU {
 
     public ByteWord getSI() {
         return SI;
-    }
-
-    public int getCurrentDSBlock() {
-        return currentDSBlock;
-    }
-
-    public void setCurrentDSBlock(int currentDSBlock) {
-        this.currentDSBlock = currentDSBlock;
-    }
-
-    public int getCurrentSSBlock() {
-        return currentSSBlock;
-    }
-
-    public void setCurrentSSBlock(int currentSSBlock) {
-        this.currentSSBlock = currentSSBlock;
-    }
-
-    public int getCurrentCSBlock() {
-        return currentCSBlock;
-    }
-
-    public void setCurrentCSBlock(int currentCSBlock) {
-        this.currentCSBlock = currentCSBlock;
-    }
-
-    public Memory getInternalMemory() {
-        return internalMemory;
-    }
-
-    public Memory getExternalMemory() {
-        return externalMemory;
     }
 }

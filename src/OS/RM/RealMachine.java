@@ -1,6 +1,9 @@
 package OS.RM;
 
 import OS.VM.VirtualMachine;
+import UI.OSFrame;
+import UI.RMPanel;
+import UI.VMPanel;
 
 import java.util.ArrayList;
 
@@ -16,12 +19,16 @@ public class RealMachine {
     private ArrayList<VirtualMachine> virtualMachines;
     private RealCPU realCPU;
 
-    RealMachine() {
+    private OSFrame screen;
+
+    RealMachine(OSFrame screen) {
+        this.screen = screen;
         externalMemory = new ExternalMemory();
         internalMemory = new InternalMemory();
         virtualMachines = new ArrayList<VirtualMachine>(10);
+
         try {
-            realCPU = new RealCPU(internalMemory, externalMemory);
+            realCPU = new RealCPU(internalMemory, externalMemory, screen);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -50,7 +57,7 @@ public class RealMachine {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new VirtualMachine(fileName, realCPU, internalBlockBegin);
+        return new VirtualMachine(fileName, realCPU, internalBlockBegin, screen);
     }
 
     public ExternalMemory getExternalMemory() {
