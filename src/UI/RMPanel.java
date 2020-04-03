@@ -36,10 +36,8 @@ public class RMPanel
     private JLabel labelRLMSI;
     private JLabel labelRLMMode;
     private JLabel labelRMMode;
-    private JComboBox comboBoxVirtualMachineSelector;
     private JButton ENTRYButton;
     private JLabel labelRM;
-    private JButton INCSIButton;
     private JPanel RMPanel;
 
     RMPanel(){
@@ -53,21 +51,6 @@ public class RMPanel
         labelRLMSS.setText(SS.getHEXFormat());
         labelRLMDS.setText(DS.getHEXFormat());
         labelRLMCS.setText(CS.getHEXFormat());
-    }
-
-    public void setIncButtonFunction(Callable function)
-    {
-        INCSIButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                try {
-                    function.call();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
     }
 
     public void setPTRRegister(Word PTR) {

@@ -50,7 +50,7 @@
       </component>
       <component id="c566c" class="javax.swing.JTextArea" binding="textAreaInput">
         <constraints>
-          <grid row="8" column="3" row-span="5" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="2" use-parent-layout="false">
+          <grid row="9" column="0" row-span="4" col-span="5" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="2" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
         </constraints>
@@ -179,29 +179,6 @@
           <text value="MODE:"/>
         </properties>
       </component>
-      <component id="92086" class="javax.swing.JComboBox" binding="comboBoxVirtualMachineSelector">
-        <constraints>
-          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="20" height="10"/>
-          </grid>
-        </constraints>
-        <properties>
-          <model>
-            <item value="1"/>
-            <item value="2"/>
-            <item value="3"/>
-            <item value="4"/>
-          </model>
-        </properties>
-      </component>
-      <component id="bc30c" class="javax.swing.JButton" binding="ENTRYButton" default-binding="true">
-        <constraints>
-          <grid row="8" column="0" row-span="2" col-span="3" vsize-policy="0" hsize-policy="3" anchor="5" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="ENTRY"/>
-        </properties>
-      </component>
       <component id="58d22" class="javax.swing.JLabel" binding="labelRM">
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
@@ -210,12 +187,15 @@
           <text value="Real Machine"/>
         </properties>
       </component>
-      <component id="a1743" class="javax.swing.JButton" binding="INCSIButton" default-binding="true">
+      <component id="bc30c" class="javax.swing.JButton" binding="ENTRYButton" default-binding="true">
         <constraints>
-          <grid row="9" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="5" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="8" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false">
+            <maximum-size width="80" height="25"/>
+          </grid>
         </constraints>
         <properties>
-          <text value="INC SI"/>
+          <horizontalAlignment value="0"/>
+          <text value="ENTRY"/>
         </properties>
       </component>
     </children>
