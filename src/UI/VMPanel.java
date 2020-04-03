@@ -4,9 +4,12 @@ import OS.Tools.ByteWord;
 import OS.Tools.Word;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 public class VMPanel {
@@ -41,8 +44,35 @@ public class VMPanel {
     private JLabel labelVRIC;
 
     private JPanel VMPanel;
+    private JButton INCSIButton;
+    private JButton NODEBUGButton;
 
     VMPanel(){
+
+        NODEBUGButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    System.out.println("NODEBUG");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void setIncButtonFunction(Callable function)
+    {
+        INCSIButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    function.call();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 

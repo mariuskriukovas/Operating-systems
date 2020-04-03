@@ -2,16 +2,11 @@ package OS.VM;
 
 import OS.RM.Parser;
 import OS.RM.RealCPU;
-import OS.Tools.ChannelDevice;
 import OS.Tools.Constants;
 import OS.Tools.Word;
 import UI.OSFrame;
-import UI.RMPanel;
-import UI.VMPanel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.Callable;
 
 public class VirtualMachine {
     private CPU cpu = null;
@@ -27,12 +22,8 @@ public class VirtualMachine {
 
     public VirtualMachine(String sourceCode, RealCPU realCPU, int internalBlockBegin, OSFrame screen) {
         this.screen = screen;
-        screen.getScreenForRealMachine().setIncButtonFunction(
-                    new Callable<>() {
-                        public Integer call() {
-                            return doYourMagicStepByStep();
-                        }
-                    }
+        screen.getScreenForVirtualMachine().setIncButtonFunction(
+                () -> doYourMagicStepByStep()
         );
 
         try {
