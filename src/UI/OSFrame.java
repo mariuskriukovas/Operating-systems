@@ -30,6 +30,11 @@ public class OSFrame extends JFrame
 
     }
 
+    public void setReady (boolean isReady) {
+        vmPanel.setReady(isReady);
+        rmPanel.setReady(isReady);
+    }
+
     public VMPanel getScreenForVirtualMachine()
     {
         return vmPanel;
