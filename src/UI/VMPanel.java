@@ -47,13 +47,18 @@ public class VMPanel {
     private JButton INCSIButton;
     private JButton NODEBUGButton;
 
+    private boolean ready = false;
+
     VMPanel(){
+
+        NODEBUGButton.setEnabled(false);
+        INCSIButton.setEnabled(false);
 
         NODEBUGButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
-                    System.out.println("NODEBUG");
+                    System.out.println("NO_DEBUG");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -113,7 +118,6 @@ public class VMPanel {
 
     }
 
-
     public void setStackSegment(Word[] arr) throws Exception {
         listStackSegment.setListData(arr);
         scrollRMSS.setViewportView(listStackSegment);
@@ -128,5 +132,25 @@ public class VMPanel {
         List<String> str = Arrays.stream(arr).map(x->x.getASCIIFormat()).collect(Collectors.toList());
         listCodeSegment.setListData(str.toArray());
         scrollRMCS.setViewportView(listCodeSegment);
+    }
+
+    private void createUIComponents() {
+        listStackSegment = new JList();
+        listCodeSegment = new JList();
+        listDataSegment = new JList();
+       listCodeSegment.setFixedCellWidth(166);
+       listDataSegment.setFixedCellWidth(166);
+       listStackSegment.setFixedCellWidth(167);
+    }
+
+
+    public boolean isReady() {
+        return ready;
+    }
+
+    public void setReady(boolean ready) {
+        this.ready = ready;
+        INCSIButton.setEnabled(true);
+        NODEBUGButton.setEnabled(true);
     }
 }
