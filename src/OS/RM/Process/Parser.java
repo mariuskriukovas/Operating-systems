@@ -1,4 +1,4 @@
-package OS.RM;
+package OS.RM.Process;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,6 +13,8 @@ public class Parser {
     private final ArrayList<String> dataSegment = new ArrayList<String>(100);
     private final ArrayList<String> codeSegment = new ArrayList<String>(100);
 
+    private final ArrayList<Command> dataSegmentC = new ArrayList<Command>(100);
+    private final ArrayList<Command> codeSegmentC = new ArrayList<Command>(100);
 
     public Parser(String fileLocation) {
         try {
@@ -45,6 +47,7 @@ public class Parser {
         for (int i = dataSegmentIndex + 1; i < codeSegmentIndex; i++) {
             String parsed = checkCommand(fileContent.get(i));
             dataSegment.add(parsed);
+            dataSegmentC.add(new Command(i-1, parsed));
 //            System.out.println(i-1+" : "+parsed);
         }
 
@@ -53,18 +56,48 @@ public class Parser {
             String parsed = checkCommand(fileContent.get(i));
             codeSegment.add(parsed);
 //            System.out.println(address+" : "+parsed);
+            codeSegmentC.add(new Command(address, parsed));
             address++;
         }
-//        System.out.println();
-//        System.out.println("--------------------------------------------");
-//        System.out.println();
+
     }
 
+    public class Command
+    {
+        int position;
+        String value;
+        Command(int pos, String val)
+        {
+            position = pos;
+            value = val;
+        }
+
+        public int getPosition() {
+            return position;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return position + " : " + value;
+        }
+    }
+
+//to be replaced
     public ArrayList<String> getCodeSegment() {
         return codeSegment;
     }
-
     public ArrayList<String> getDataSegment() {
         return dataSegment;
+    }
+
+    public ArrayList<Command> getCodeSegmentC() {
+        return codeSegmentC;
+    }
+    public ArrayList<Command> getDataSegmentC() {
+        return dataSegmentC;
     }
 }

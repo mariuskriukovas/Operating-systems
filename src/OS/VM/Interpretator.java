@@ -1,16 +1,15 @@
 package OS.VM;
 
-import OS.Tools.Constants;
+import OS.RM.CPU;
+import OS.Tools.Constants.*;
 import OS.Tools.Word;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 public class Interpretator
 {
     private final CPU cpu;
     private final Stack stack;
-
 
     Interpretator(CPU cpu)
     {
@@ -92,10 +91,10 @@ public class Interpretator
                 cpu.setRL(new Word(rl));
                 long rh = (result /manyF);
                 cpu.setRH(new Word(rh));
-                cpu.setC(Constants.C_VALUES.ONE);
+                cpu.setC(CONDITIONAL_MODE.ONE);
             } else {
                 cpu.setRL(new Word(result));
-                cpu.setC(Constants.C_VALUES.ZERO);
+                cpu.setC(CONDITIONAL_MODE.ZERO);
             }
         }catch (Exception e)
         {
@@ -137,10 +136,10 @@ public class Interpretator
                 cpu.setRL(new Word(rl));
                 long rh = Long.parseLong(result.divide(manyF).toString());
                 cpu.setRH(new Word(rh));
-                cpu.setC(Constants.C_VALUES.ONE);
+                cpu.setC(CONDITIONAL_MODE.ONE);
             } else {
                 cpu.setRL(new Word(Long.parseLong(result.toString())));
-                cpu.setC(Constants.C_VALUES.ZERO);
+                cpu.setC(CONDITIONAL_MODE.ZERO);
             }
         }catch (Exception e)
         {
@@ -158,8 +157,8 @@ public class Interpretator
             if(op2 == 0)throw new Exception("Division by zero");
             long div = op1 / op2;
             long mod = op1 % op2;
-            if(mod==0)cpu.setC(Constants.C_VALUES.ZERO);
-            else cpu.setC(Constants.C_VALUES.ONE);
+            if(mod==0)cpu.setC(CONDITIONAL_MODE.ZERO);
+            else cpu.setC(CONDITIONAL_MODE.ONE);
             cpu.setRL(new Word(div));
             cpu.setRH(new Word(mod));
         }catch (Exception e)
@@ -171,19 +170,20 @@ public class Interpretator
     {
         System.out.println("CM()");
         try {
-            Word w1 = stack.getNthElement(0);
-            Word w2 = stack.getNthElement(1);
-            if(w1.getNumber() == w2.getNumber())
-            {
-                cpu.setC(Constants.C_VALUES.ONE);
-            } else{
-                if(w1.getNumber() < w2.getNumber())
-                {
-                    cpu.setC(Constants.C_VALUES.ZERO);
-                }else {
-                    cpu.setC(Constants.C_VALUES.TWO);
-                }
-            }
+            throw new Exception("not implemented");
+//            Word w1 = stack.getNthElement(0);
+//            Word w2 = stack.getNthElement(1);
+//            if(w1.getNumber() == w2.getNumber())
+//            {
+//                cpu.setC(Constants.C_VALUES.ONE);
+//            } else{
+//                if(w1.getNumber() < w2.getNumber())
+//                {
+//                    cpu.setC(Constants.C_VALUES.ZERO);
+//                }else {
+//                    cpu.setC(Constants.C_VALUES.TWO);
+//                }
+//            }
         }catch (Exception e)
         {
             e.printStackTrace();
@@ -192,7 +192,6 @@ public class Interpretator
     private void CMR()
     {
         System.out.println("CMR()");
-
         System.out.println("RH"+cpu.getRH());
         System.out.println("RL"+cpu.getRL());
 
@@ -201,13 +200,13 @@ public class Interpretator
             Word w2 =  cpu.getRH();
             if(w1.getNumber() == w2.getNumber())
             {
-                cpu.setC(Constants.C_VALUES.ONE);
+                cpu.setC(CONDITIONAL_MODE.ONE);
             } else{
                 if(w1.getNumber() < w2.getNumber())
                 {
-                    cpu.setC(Constants.C_VALUES.ZERO);
+                    cpu.setC(CONDITIONAL_MODE.ZERO);
                 }else {
-                    cpu.setC(Constants.C_VALUES.TWO);
+                    cpu.setC(CONDITIONAL_MODE.TWO);
                 }
             }
         }catch (Exception e)
@@ -240,7 +239,7 @@ public class Interpretator
     {
         System.out.println("JA()");
         try {
-            if(cpu.getC() == Constants.C_VALUES.TWO)
+            if(cpu.getC() == CONDITIONAL_MODE.TWO)
             {
                 JUMP();
             }
@@ -253,7 +252,7 @@ public class Interpretator
     {
         System.out.println("JAR()");
         try {
-            if(cpu.getC() == Constants.C_VALUES.TWO)
+            if(cpu.getC() == CONDITIONAL_MODE.TWO)
             {
                 JUMPR();
             }
@@ -266,7 +265,7 @@ public class Interpretator
     {
         System.out.println("JB()");
         try {
-            if(cpu.getC() == Constants.C_VALUES.ZERO)
+            if(cpu.getC() == CONDITIONAL_MODE.ZERO)
             {
                 JUMP();
             }
@@ -279,7 +278,7 @@ public class Interpretator
     {
         System.out.println("JBR()");
         try {
-            if(cpu.getC() == Constants.C_VALUES.ZERO)
+            if(cpu.getC() == CONDITIONAL_MODE.ZERO)
             {
                 JUMPR();
             }
@@ -292,7 +291,7 @@ public class Interpretator
     {
         System.out.println("JE()");
         try {
-            if(cpu.getC() == Constants.C_VALUES.ONE)
+            if(cpu.getC() == CONDITIONAL_MODE.ONE)
             {
                 JUMP();
             }
@@ -305,7 +304,7 @@ public class Interpretator
     {
         System.out.println("JER");
         try {
-            if(cpu.getC() == Constants.C_VALUES.ONE)
+            if(cpu.getC() == CONDITIONAL_MODE.ONE)
             {
                 JUMPR();
             }
@@ -357,8 +356,10 @@ public class Interpretator
         String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
         System.out.println("LOADB()");
         try {
-            cpu.setRL(cpu.getDSValue(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC)));
-            cpu.setC(Constants.C_VALUES.ZERO);
+            Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+            check(address);
+            cpu.setRL(cpu.getDSValue(address));
+            cpu.setC(CONDITIONAL_MODE.ZERO);
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -367,8 +368,11 @@ public class Interpretator
         String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
         System.out.println("LOADW()");
         try {
-            cpu.setRL(cpu.getDSValue(new Word(virtualAddress, Word.WORD_TYPE.SYMBOLIC)));
-            cpu.setC(Constants.C_VALUES.ONE);
+            Word address =  new Word(virtualAddress, Word.WORD_TYPE.SYMBOLIC);
+            check(address);
+            cpu.setRL(cpu.getDSValue(address));
+            cpu.setC(CONDITIONAL_MODE.ONE);
+
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -378,6 +382,7 @@ public class Interpretator
         System.out.println("SAVE()");
         try {
             Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+            check(address);
             cpu.setDS(address,cpu.getRL());
         }catch (Exception e) {
             e.printStackTrace();
@@ -392,9 +397,10 @@ public class Interpretator
         System.out.println("PUT()");
         try {
             System.out.println("PUTS values :");
-            for (int i =0; i<Constants.F_VALUE; i++)
+            for (int i =0; i< 16 ; i++)
             {
                 Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC).add(i);
+                check(address);
                 System.out.println(address + " ---> " + cpu.getDSValue(address));
             }
 
@@ -404,7 +410,7 @@ public class Interpretator
     }
     private void HALT() throws Exception {
         System.out.println("HALT()");
-        cpu.setSI(Constants.INTERRUPTION.HALT);
+        cpu.setSI(SYSTEM_INTERRUPTION.HALT);
     }
 
     private void PRINTR(){
@@ -415,11 +421,17 @@ public class Interpretator
         System.out.println("C ---> " + cpu.getC().toString());
     }
 
-    public CPU getCpu() {
-        return cpu;
+    private void check(Word address){
+        try {
+            if(cpu.getVirtualDS(address).getBlockFromAddress() != cpu.getDSB().getNumber())
+            {
+                cpu.setRL(address);
+                cpu.setSI(SYSTEM_INTERRUPTION.LOADED_WRONG_DS_BLOCK);
+                cpu.test();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public Stack getStack() {
-        return stack;
-    }
 }

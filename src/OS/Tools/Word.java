@@ -128,4 +128,12 @@ public class Word {
         }
     }
 
+    public int getBlockFromAddress() {
+        return Integer.parseInt(getHEXFormat().substring(0, 4), 16);
+    }
+
+    public int getWordFromAddress() {
+        return Integer.parseInt(getHEXFormat().substring(4), 16);
+    }
+
 }

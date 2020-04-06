@@ -1,28 +1,34 @@
 package OS.VM;
 
-import OS.Tools.Word;
+import OS.RM.CPU;
+import OS.Tools.Constants;
 
 public class Stack {
 
     private final CPU cpu;
 
-    Stack(CPU cpu) {
+    public Stack(CPU cpu) {
         this.cpu = cpu;
     }
 
     public void Push() throws Exception {
-        cpu.setSSValue(cpu.getRL());
+
+        if(cpu.getVirtualSS(cpu.getSP()).getBlockFromAddress() != cpu.getSSB().getNumber())
+        {
+            cpu.setSI(Constants.SYSTEM_INTERRUPTION.LOADED_WRONG_SS_BLOCK);
+            cpu.test();
+        }
+        cpu.setVirtualSSValue(cpu.getRL());
         cpu.increaseSP();
     }
 
     public void Pop() throws Exception {
         cpu.decreaseSP();
-        cpu.setRL(cpu.getSSValue());
+        if(cpu.getVirtualSS(cpu.getSP()).getBlockFromAddress() != cpu.getSSB().getNumber())
+        {
+            cpu.setSI(Constants.SYSTEM_INTERRUPTION.LOADED_WRONG_SS_BLOCK);
+            cpu.test();
+        }
+        cpu.setRL(cpu.getVirtualSSValue());
     }
-
-    public Word getNthElement(int n) throws Exception {
-        if (n > cpu.getSP().getNumber()) throw new Exception("NO ELEMENTS IN STACK");
-        return cpu.getSSValue(n);
-    }
-
 }

@@ -1,67 +1,61 @@
 package OS.VM;
 
-import OS.RM.Parser;
-import OS.RM.RealCPU;
+import OS.RM.Process.Parser;
+import OS.RM.CPU;
 import OS.Tools.Constants;
 import OS.Tools.Word;
 import UI.OSFrame;
+import OS.Tools.Constants.SYSTEM_INTERRUPTION;
 
 import java.util.ArrayList;
 
 public class VirtualMachine {
+
     private CPU cpu = null;
     private Interpretator interpretator;
-    private RealCPU realCPU = null;
+    private final String processID;
 
-    private int currentDSBlock = 0;
-    private int currentSSBlock = 0;
-    private int currentCSBlock = 0;
-    private int internalBlockBegin = 0;
 
     private OSFrame screen;
 
-    public VirtualMachine(String sourceCode, RealCPU realCPU, int internalBlockBegin, OSFrame screen) {
-        this.screen = screen;
-        screen.getScreenForVirtualMachine().setIncButtonFunction(
-                () -> doYourMagicStepByStep()
-        );
+    public VirtualMachine(String ID, CPU cpu)
+    {
+//        this.screen = screen;
+//        screen.getScreenForVirtualMachine().setIncButtonFunction(() -> doYourMagicStepByStep());
+//        screen.getScreenForVirtualMachine().setNodeBugButtonFunction(() -> doYourMagic());
 
+        processID = ID;
         try {
-            this.internalBlockBegin = internalBlockBegin;
-            this.realCPU = realCPU;
-            realCPU.loadVirtualMachineMemory(internalBlockBegin, currentCSBlock, currentDSBlock, currentSSBlock);
-
-            cpu = new CPU(realCPU, screen.getScreenForVirtualMachine());
+            this.cpu = cpu;
             interpretator = new Interpretator(cpu);
-            Parser parser = new Parser(sourceCode);
-
-            uploadDataSegment(parser.getDataSegment());
-            uploadCodeSegment(parser.getCodeSegment());
-
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void setCurrentBlocks(int currentDSBlock, int currentSSBlock, int currentCSBlock) {
-        this.currentDSBlock = currentDSBlock;
-        this.currentSSBlock = currentSSBlock;
-        this.currentCSBlock = currentCSBlock;
-    }
 
-    private void doYourMagic() throws Exception {
-        while (!cpu.getSI().equals(Constants.INTERRUPTION.HALT)) {
-            String command = cpu.getCSValue(cpu.getIC()).getASCIIFormat();
-            interpretator.execute(command);
-            cpu.increaseIC();
+    public Integer doYourMagic(){
+        try{
+            while (!cpu.getSI().equals(SYSTEM_INTERRUPTION.HALT)) {
+                check();
+                String command = cpu.getVirtualCSValue(cpu.getIC()).getASCIIFormat();
+                interpretator.execute(command);
+                cpu.increaseIC();
+            }
+        }catch (Exception e)
+        {
+             e.printStackTrace();
+            return -1;
         }
+        return 1;
     }
 
-    private Integer doYourMagicStepByStep() {
-        if (!cpu.getSI().equals(Constants.INTERRUPTION.HALT)) {
+    public Integer doYourMagicStepByStep() {
+        if (!cpu.getSI().equals(SYSTEM_INTERRUPTION.HALT)) {
             try {
-                String command = cpu.getCSValue(cpu.getIC()).getASCIIFormat();
+                check();
+                String command = cpu.getVirtualCS(cpu.getIC()).getASCIIFormat();
                 interpretator.execute(command);
                 cpu.increaseIC();
             }catch (Exception e){
@@ -87,4 +81,18 @@ public class VirtualMachine {
             i++;
         }
     }
+
+    private void check(){
+        try {
+            if(cpu.getVirtualCS(cpu.getIC()).getBlockFromAddress() != cpu.getCSB().getNumber())
+            {
+                cpu.setSI(Constants.SYSTEM_INTERRUPTION.LOADED_WRONG_CS_BLOCK);
+                cpu.test();
+            }
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
 }
