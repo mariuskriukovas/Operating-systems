@@ -33,6 +33,7 @@ public class RealMachine {
             e.printStackTrace();
         }
         virtualMachines.add(createVirtualMachine("prog.txt"));
+        this.screen.setReady(true);
     }
 
     //to be implemented
