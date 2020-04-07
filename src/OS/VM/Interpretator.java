@@ -352,56 +352,82 @@ public class Interpretator
             e.printStackTrace();
         }
     }
+
+    //    RL ---> value
     private void LOADB() throws Exception {
-        String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
+
+        //    Word address, ---> RL
+        //    RL ---> value
+        cpu.setRL(cpu.getIC().copy());
+        cpu.interrupt().GETCS();
+        String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
+
         System.out.println("LOADB()");
         try {
             Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
-            check(address);
-            cpu.setRL(cpu.getDSValue(address));
+            cpu.setRL(address);
+            cpu.interrupt().GETDS();
             cpu.setC(CONDITIONAL_MODE.ZERO);
         }catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("PO LOAD --------> "+ cpu.getRL().getHEXFormat());
     }
+    //    RL ---> value
     private void LOADW() throws Exception {
-        String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
         System.out.println("LOADW()");
+        LOADB();
+        String value = cpu.getRL().getHEXFormat();
+        cpu.setRL(new Word(value, Word.WORD_TYPE.SYMBOLIC));
+        cpu.setC(CONDITIONAL_MODE.ONE);
+    }
+    private void SAVE() throws Exception {
+
+        Word value = cpu.getRL().copy();
+
+        //    Word address, ---> RL
+        //    RL ---> value
+        cpu.setRL(cpu.getIC().copy());
+        cpu.interrupt().GETCS();
+        String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
+
+        System.out.println("SAVE()");
         try {
-            Word address =  new Word(virtualAddress, Word.WORD_TYPE.SYMBOLIC);
-            check(address);
-            cpu.setRL(cpu.getDSValue(address));
-            cpu.setC(CONDITIONAL_MODE.ONE);
+            Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+
+            //    Word address, ---> RL
+            //    Word value  ---> RH
+            cpu.setRH(value);
+            cpu.setRL(address);
+            cpu.interrupt().SETDS();
 
         }catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private void SAVE() throws Exception {
-        String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
-        System.out.println("SAVE()");
-        try {
-            Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
-            check(address);
-            cpu.setDS(address,cpu.getRL());
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
     private void GET() throws Exception {
-        String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
+        //String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
         System.out.println("GET()");
+        throw new Exception("Not implemented");
     }
     private void PUT() throws Exception {
-        String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
+
+        //    Word address, ---> RL
+        //    RL ---> value
+        cpu.setRL(cpu.getIC().copy());
+        cpu.interrupt().GETCS();
+        String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
+
         System.out.println("PUT()");
         try {
             System.out.println("PUTS values :");
             for (int i =0; i< 16 ; i++)
             {
                 Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC).add(i);
-                check(address);
-                System.out.println(address + " ---> " + cpu.getDSValue(address));
+
+                cpu.setRL(address);
+                cpu.interrupt().GETDS();
+                System.out.println(address + " ---> " + cpu.getRL());
             }
 
         }catch (Exception e) {
@@ -421,17 +447,5 @@ public class Interpretator
         System.out.println("C ---> " + cpu.getC().toString());
     }
 
-    private void check(Word address){
-        try {
-            if(cpu.getVirtualDS(address).getBlockFromAddress() != cpu.getDSB().getNumber())
-            {
-                cpu.setRL(address);
-                cpu.setSI(SYSTEM_INTERRUPTION.LOADED_WRONG_DS_BLOCK);
-                cpu.test();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
 }

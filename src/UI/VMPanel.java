@@ -1,11 +1,13 @@
 package UI;
 
-import OS.Tools.ByteWord;
+import OS.Tools.Constants.*;
 import OS.Tools.Word;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.invoke.ConstantBootstraps;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,26 +51,34 @@ public class VMPanel {
 
     private boolean ready = false;
 
+    Integer visible = 1;
+
     VMPanel(){
 
         NODEBUGButton.setEnabled(false);
         INCSIButton.setEnabled(false);
 
-        NODEBUGButton.addActionListener(new ActionListener() {
+        INCSIButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
-                    System.out.println("NO_DEBUG");
+
+                    synchronized (visible){
+                        visible.notify();
+                    }
+
+                    System.out.println("Tick");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
+
     }
 
-    public void setIncButtonFunction(Callable function)
+    public void setNoDebugFunction(Callable function)
     {
-        INCSIButton.addActionListener(new ActionListener() {
+        NODEBUGButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
@@ -78,8 +88,8 @@ public class VMPanel {
                 }
             }
         });
-
     }
+
 
     JPanel getVMPanel(){
         return this.VMPanel;
@@ -110,13 +120,22 @@ public class VMPanel {
         labelVirMRH.setText(RH.getHEXFormat());
     }
 
-    public void setCRegister(ByteWord C){
+    // mazdaug pagal sita modeli visus
+    public void setRLRegister(Word RL)  {
+        setBlack();
+        labelVRRL.setForeground(Color.RED);
+        labelVRRL.setText(RL.getHEXFormat());
+        checkVisibility();
+    }
+
+    public void setRHRegister(Word RH)  {
+        labelVirMRH.setText(RH.getHEXFormat());
+    }
+
+    public void setCRegister(CONDITIONAL_MODE C){
         labelVRC.setText(C.toString());
     }
 
-    public void setSIRegister(ByteWord SI){
-
-    }
 
     public void setStackSegment(Word[] arr) throws Exception {
         listStackSegment.setListData(arr);
@@ -141,6 +160,30 @@ public class VMPanel {
        listCodeSegment.setFixedCellWidth(166);
        listDataSegment.setFixedCellWidth(166);
        listStackSegment.setFixedCellWidth(167);
+    }
+
+    public void setBlack()
+    {
+        labelVRRL.setForeground(Color.BLACK);
+        labelVirMRH.setForeground(Color.BLACK);
+
+        labelVRMDS.setForeground(Color.BLACK);
+        labelVRMCS.setForeground(Color.BLACK);
+        labelVRMSS.setForeground(Color.BLACK);
+        labelVRMSP.setForeground(Color.BLACK);
+        labelVRC.setForeground(Color.BLACK);
+        labelVRIC.setForeground(Color.BLACK);
+    }
+
+    private void checkVisibility()
+    {
+        synchronized (visible){
+            try {
+                visible.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 

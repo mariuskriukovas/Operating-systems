@@ -128,6 +128,15 @@ public class Word {
         }
     }
 
+    public Word copy()
+    {
+        try {
+            return new Word(getNumber());
+        }catch (Exception e){
+            return null;
+        }
+    }
+
     public int getBlockFromAddress() {
         return Integer.parseInt(getHEXFormat().substring(0, 4), 16);
     }

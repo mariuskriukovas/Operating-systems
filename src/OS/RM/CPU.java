@@ -9,13 +9,16 @@ import UI.OSFrame;
 import UI.RMPanel;
 import UI.VMPanel;
 
+import java.util.ArrayList;
+
 import static OS.Tools.Constants.*;
+import static OS.Tools.Constants.SYSTEM_INTERRUPTION.*;
 
 
 public class CPU {
     //Real Machine part
     private CONDITIONAL_MODE C = CONDITIONAL_MODE.NONE;
-    private final SYSTEM_MODE MODE = SYSTEM_MODE.NONE;
+    private SYSTEM_MODE MODE = SYSTEM_MODE.NONE;
 
     private final PROGRAM_INTERRUPTION PI = PROGRAM_INTERRUPTION.NONE;
     private SYSTEM_INTERRUPTION SI = SYSTEM_INTERRUPTION.NONE;
@@ -43,31 +46,66 @@ public class CPU {
     private final Memory internalMemory;
     private final Memory externalMemory;
 
-//    private final RMPanel RMScreen;
-//    private final VMPanel VMScreen;
+    private final RMPanel RMScreen;
+    private final VMPanel VMScreen;
 
     private final Loader loader;
+    private final Interruption interruption;
 
 
     CPU(Memory internal, Memory external, OSFrame screen) throws Exception {
         this.externalMemory = external;
         this.internalMemory = internal;
         loader = new Loader(this);
+        interruption = new Interruption(this);
 
-//        RMScreen = screen.getScreenForRealMachine();
-//        VMScreen = screen.getScreenForVirtualMachine();
+        RMScreen = screen.getScreenForRealMachine();
+        VMScreen = screen.getScreenForVirtualMachine();
     }
 
+    public Interruption interrupt()
+    {
+        return interruption;
+    }
+
+    private ArrayList<Object> OSStack = new ArrayList<Object>(10);
+
+    public void saveRegisterState()
+    {
+        try {
+            OSStack.add(new Word(getRH().getNumber()));
+            OSStack.add(new Word(getRL().getNumber()));
+            OSStack.add(getSI());
+            OSStack.add(getMODE());
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void restoreRegisterState()
+    {
+        try {
+            setMODE((SYSTEM_MODE) OSStack.remove(OSStack.size()-1));
+            setSI((SYSTEM_INTERRUPTION) OSStack.remove(OSStack.size()-1));
+            setRL((Word) OSStack.remove(OSStack.size()-1));
+            setRH((Word) OSStack.remove(OSStack.size()-1));
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
 
     //Real Machine part
 
     public Word getPTR() throws Exception {
+        RMScreen.setPTRRegister(PTR);
         return new Word(PTR.getNumber());
     }
 
     public void setPTR(Word word) {
         PTR.setWord(word);
-//        RMScreen.setPTRRegister(PTR);
+        RMScreen.setPTRRegister(PTR);
     }
 
     public Word getPTRValue(int block) throws Exception {
@@ -78,234 +116,186 @@ public class CPU {
         internalMemory.setWord(word, PTR.add(block));
     }
 
-    public Word getDS() {
-        return DS;
+    public Word getDS() throws Exception {
+        switch (MODE)
+        {
+            case SUPERVISOR_MODE:
+                RMScreen.setDSRegister(DS);
+                return DS;
+            case USER_MODE:
+                RMScreen.setDSRegister(new Word(DATA_SEGMENT));
+                return new Word(DATA_SEGMENT);
+            default:
+                return new Word(0);
+        }
     }
 
-    public Word getSS() {
-        return SS;
+    public Word getSS() throws Exception {
+        switch (MODE)
+        {
+            case SUPERVISOR_MODE:
+                RMScreen.setSSRegister(SS);
+                return SS;
+            case USER_MODE:
+                RMScreen.setSSRegister(new Word(STACK_SEGMENT));
+                return new Word(STACK_SEGMENT);
+            default:
+                return new Word(0);
+        }
     }
 
-    public Word getCS() {
-        return CS;
+    public Word getCS() throws Exception {
+
+        switch (MODE)
+        {
+            case SUPERVISOR_MODE:
+                RMScreen.setCSRegister(CS);
+                return CS;
+            case USER_MODE:
+                RMScreen.setCSRegister(new Word(CODE_SEGMENT));
+                return new Word(CODE_SEGMENT);
+            default:
+                return null;
+        }
     }
 
     public Word getSSB() {
+        RMScreen.setSSBRegister(SSB);
         return SSB;
     }
 
     public Word getDSB() {
+        RMScreen.setDSBRegister(DSB);
         return DSB;
     }
 
     public Word getCSB() {
+        RMScreen.setCSBRegister(CSB);
         return CSB;
     }
 
     public void setSSB(Word word) {
+        RMScreen.setSSBRegister(SSB);
         SSB.setWord(word);
     }
 
     public void setDSB(Word word) {
+        RMScreen.setDSBRegister(DSB);
         DSB.setWord(word);
     }
 
     public void setCSB(Word word) {
+        RMScreen.setCSBRegister(CSB);
         CSB.setWord(word);
     }
 
     public void setDS(Word word) {
         DS.setWord(word);
-//        RMScreen.setDSRegister(DS);
+        RMScreen.setDSRegister(DS);
     }
 
     public void setSS(Word word) {
         SS.setWord(word);
-//        RMScreen.setSSRegister(SS);
+        RMScreen.setSSRegister(SS);
     }
 
     public void setCS(Word word) {
         CS.setWord(word);
-//        RMScreen.setCSRegister(CS);
+        RMScreen.setCSRegister(CS);
     }
 
-    public void setCS(Word virtualAddress, Word value) throws Exception {
-        int word = virtualAddress.getWordFromAddress();
-        internalMemory.setWord(value, CS.getNumber() + word);
-//        VMScreen.setCodeSegment(internalMemory.getBlock(getBlockFromAddress(CS)));
-    }
-
-    public Word getCS(Word virtualAddress) throws Exception {
-        int word = virtualAddress.getWordFromAddress();
-        return new Word(CS.getNumber() + word);
-    }
-
-    public Word getCSValue(Word virtualAddress) throws Exception {
-        return internalMemory.getWord(getCS(virtualAddress));
-    }
-
-    public void setSS(Word virtualAddress, Word value) throws Exception {
-        int word = virtualAddress.getWordFromAddress();
-        internalMemory.setWord(value, SS.getNumber() + word);
-//        VMScreen.setStackSegment(internalMemory.getBlock(getBlockFromAddress(SS)));
-    }
-
-    public Word getSS(Word virtualAddress) throws Exception {
-        int word = virtualAddress.getWordFromAddress();
-        return new Word(SS.getNumber() + word);
-    }
-
-    public Word getSSValue(Word virtualAddress) throws Exception {
-        return internalMemory.getWord(getSS(virtualAddress));
-    }
-
-    public void setDS(Word virtualAddress, Word value) throws Exception {
-        int word = virtualAddress.getWordFromAddress();
-        internalMemory.setWord(value, DS.getNumber() + word);
-//        VMScreen.setDataSegment(internalMemory.getBlock(getBlockFromAddress(DS)));
-    }
-
-    public Word getDS(Word virtualAddress) throws Exception {
-        int word = virtualAddress.getWordFromAddress();
-        return new Word(DS.getNumber() + word);
-    }
-
-    public Word getDSValue(Word virtualAddress) throws Exception {
-        return internalMemory.getWord(getDS(virtualAddress));
-    }
 
     public SYSTEM_MODE getMODE() {
+        RMScreen.setMODERegister(MODE);
         return MODE;
     }
 
     public int getTI() {
+        RMScreen.setTIRegister(TI);
         return TI;
     }
 
     public PROGRAM_INTERRUPTION getPI() {
+        RMScreen.setPIRegister(PI);
         return PI;
     }
 
     public SYSTEM_INTERRUPTION getSI() {
+        RMScreen.setSIRegister(SI);
         return SI;
     }
 
     public void setSI(SYSTEM_INTERRUPTION flag) {
         SI = flag;
+        RMScreen.setSIRegister(SI);
     }
 
     //Virtual Machine Part
 
     public Word getSP() throws Exception {
+        VMScreen.setStackPointer(SP);
         return SP;
     }
 
     public void setSP(Word word) {
         SP.setWord(word);
-//        screen.setStackPointer(SP);
+        VMScreen.setStackPointer(SP);
     }
 
     public void increaseSP() throws Exception {
         SP.setWord(SP.add(1));
-//        screen.setStackPointer(SP);
+        VMScreen.setStackPointer(SP);
     }
 
     public void decreaseSP() throws Exception {
         SP.setWord(SP.add(-1));
-//        screen.setStackPointer(SP);
+        VMScreen.setStackPointer(SP);
     }
 
     public Word getRL() {
+        VMScreen.setRLRegister(RL);
         return RL;
     }
 
     public void setRL(Word word) {
         RL.setWord(word);
-//        screen.setDataRegisters(RL,RH);
+        VMScreen.setRLRegister(RL);
     }
 
     public Word getRH() {
+        VMScreen.setRHRegister(RH);
         return RH;
     }
 
     public void setRH(Word word) {
         RH.setWord(word);
-//        screen.setDataRegisters(RL,RH);
+        VMScreen.setRHRegister(RH);
     }
 
     public Word getIC() {
+        VMScreen.setInstructionCounter(IC);
         return IC;
     }
 
     public void setIC(Word word) {
         IC.setWord(word);
-//        screen.setInstructionCounter(IC);
+        VMScreen.setInstructionCounter(IC);
     }
 
     public void increaseIC() throws Exception {
         IC.setWord(IC.add(1));
-//        screen.setInstructionCounter(IC);
+        VMScreen.setInstructionCounter(IC);
     }
 
     public CONDITIONAL_MODE getC() {
+        VMScreen.setCRegister(C);
         return C;
     }
 
     public void setC(CONDITIONAL_MODE flag) {
         C = flag;
-//        screen.setCRegister(C);
+        VMScreen.setCRegister(C);
     }
-
-    public Word getVirtualDS(Word virtualAddress) throws Exception {
-        return new Word(DATA_SEGMENT + virtualAddress.getNumber());
-    }
-
-    public Word getVirtualCS(Word virtualAddress) throws Exception {
-        return new Word(CODE_SEGMENT + virtualAddress.getNumber());
-    }
-
-    public Word getVirtualSS(Word virtualAddress) throws Exception {
-        return new Word(STACK_SEGMENT + virtualAddress.getNumber());
-    }
-
-    public void setVirtualDS(Word virtualAddress, Word value) throws Exception {
-        //System.out.println("setDS ---->" + virtualAddress);
-        //System.out.println("DS value ---->" + value);
-        setDS(getVirtualDS(virtualAddress), value);
-    }
-
-    public Word getVirtualDSValue(Word virtualAddress) throws Exception {
-        System.out.println("getDS ---->" + virtualAddress);
-        System.out.println("DS value ---->" + getDSValue(getVirtualDS(virtualAddress)));
-        //return memory.getWord(getDS(virtualAddress));
-        return getDSValue(getVirtualDS(virtualAddress));
-    }
-
-    public void setVirtualCS(Word virtualAddress, Word value) throws Exception {
-        setCS(getVirtualCS(virtualAddress), value);
-    }
-
-    public Word getVirtualCSValue(Word virtualAddress) throws Exception {
-        return getCSValue(getVirtualCS(virtualAddress));
-    }
-
-    public void setVirtualSSValue(Word value) throws Exception {
-        setSS(getVirtualSS(getSP()), value);
-    }
-
-    public Word getVirtualSSValue(Word virtualAddress) throws Exception {
-        return getSSValue(getVirtualSS(virtualAddress));
-    }
-
-    public Word getVirtualSSValue() throws Exception {
-        return getSSValue(getVirtualSS(getSP()));
-    }
-
-    public Word getVirtualSSValue(int n) throws Exception {
-        return getSSValue(getVirtualSS(getSP().add(-1 * (n + 1))));
-    }
-
-//---------------------------------------------------------------------------
 
     public void writeToExternalMemory(Word address, Word value) {
         try {
@@ -380,61 +370,16 @@ public class CPU {
         }
     }
 
-    public void test() {
-
-        int currentInternalBlock = -1;
-        int currentExternalBlock = -1;
-        int newExternalBlock = -1;
-
-        System.out.println("----------------->"+"test()" + " " + SI);
-        try {
-            switch (SI) {
-                case LOADED_WRONG_SS_BLOCK:
-                    //imam SP
-                    currentInternalBlock = SS.getBlockFromAddress();
-                    currentExternalBlock = getPTRValue((int) SSB.getNumber()).getBlockFromAddress();
-                    newExternalBlock = getPTRValue(getVirtualSS(SP).getBlockFromAddress()).getBlockFromAddress();
-
-                    SSB.setWord(new Word(getVirtualSS(SP).getBlockFromAddress()));
-                    break;
-                case LOADED_WRONG_DS_BLOCK:
-                    //imam RL, vistiek paskui perarys i RL
-
-                    currentInternalBlock = DS.getBlockFromAddress();
-                    currentExternalBlock = getPTRValue((int) DSB.getNumber()).getBlockFromAddress();
-                    newExternalBlock = getPTRValue(getVirtualDS(RL).getBlockFromAddress()).getBlockFromAddress();
-
-                    System.out.println("----------------->"+"previous DSB" + " " + DSB);
-                    DSB.setWord(new Word(getVirtualDS(RL).getBlockFromAddress()));
-                    System.out.println("----------------->"+"new DSB" + " " + DSB);
-                    break;
-                case LOADED_WRONG_CS_BLOCK:
-                    //zaidziam gudriai imam IC
-                    //uzkrauk AA bloka i cs
-
-                    currentInternalBlock = CS.getBlockFromAddress();
-                    currentExternalBlock = getPTRValue((int)CSB.getNumber()).getBlockFromAddress();
-                    newExternalBlock =getPTRValue(getVirtualCS(IC).getBlockFromAddress()).getBlockFromAddress();
-
-                    CSB.setWord(new Word(getVirtualCS(IC).getBlockFromAddress()));
-                    break;
-            }
-
-            //    int fromBlock -->RL
-            //    int toBlock --> RH
-            setRL(new Word( currentInternalBlock ));
-            setRH(new Word( currentExternalBlock )) ;
-            loader.loadToExternalMemory();
-
-            setRL(new Word( newExternalBlock ));
-            setRH(new Word( currentInternalBlock )) ;
-            loader.loadToInternalMemory();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+    public void setMODE(SYSTEM_MODE flag)
+    {
+        MODE = flag;
     }
+
+    public Loader getLoader()
+    {
+        return loader;
+    }
+
 }
 
 
@@ -530,4 +475,108 @@ public class CPU {
 //        this.screen.setCRegister(C);
 //    }
 //    }
+//    public void test() {
 //
+//        int currentInternalBlock = -1;
+//        int currentExternalBlock = -1;
+//        int newExternalBlock = -1;
+//
+//        System.out.println("----------------->"+"test()" + " " + SI);
+//        try {
+//            switch (SI) {
+//                case LOADED_WRONG_SS_BLOCK:
+//                    //imam SP
+//                    currentInternalBlock = SS.getBlockFromAddress();
+//                    currentExternalBlock = getPTRValue((int) SSB.getNumber()).getBlockFromAddress();
+//                    newExternalBlock = getPTRValue(getVirtualSS(SP).getBlockFromAddress()).getBlockFromAddress();
+//
+//                    SSB.setWord(new Word(getVirtualSS(SP).getBlockFromAddress()));
+//                    break;
+//                case LOADED_WRONG_DS_BLOCK:
+//                    //imam RL, vistiek paskui perarys i RL
+//
+//                    currentInternalBlock = DS.getBlockFromAddress();
+//                    currentExternalBlock = getPTRValue((int) DSB.getNumber()).getBlockFromAddress();
+//                    newExternalBlock = getPTRValue(getVirtualDS(RL).getBlockFromAddress()).getBlockFromAddress();
+//
+//                    System.out.println("----------------->"+"previous DSB" + " " + DSB);
+//                    DSB.setWord(new Word(getVirtualDS(RL).getBlockFromAddress()));
+//                    System.out.println("----------------->"+"new DSB" + " " + DSB);
+//                    break;
+//                case LOADED_WRONG_CS_BLOCK:
+//                    //zaidziam gudriai imam IC
+//                    //uzkrauk AA bloka i cs
+//
+//                    currentInternalBlock = CS.getBlockFromAddress();
+//                    currentExternalBlock = getPTRValue((int)CSB.getNumber()).getBlockFromAddress();
+//                    newExternalBlock =getPTRValue(getVirtualCS(IC).getBlockFromAddress()).getBlockFromAddress();
+//
+//                    CSB.setWord(new Word(getVirtualCS(IC).getBlockFromAddress()));
+//                    break;
+//            }
+//
+//            //    int fromBlock -->RL
+//            //    int toBlock --> RH
+//            setRL(new Word( currentInternalBlock ));
+//            setRH(new Word( currentExternalBlock )) ;
+//            loader.loadToExternalMemory();
+//
+//            setRL(new Word( newExternalBlock ));
+//            setRH(new Word( currentInternalBlock )) ;
+//            loader.loadToInternalMemory();
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+//    public Word getVirtualDS(Word virtualAddress) throws Exception {
+//        return new Word(DATA_SEGMENT + virtualAddress.getNumber());
+//    }
+//
+//    public Word getVirtualCS(Word virtualAddress) throws Exception {
+//        return new Word(CODE_SEGMENT + virtualAddress.getNumber());
+//    }
+//
+//    public Word getVirtualSS(Word virtualAddress) throws Exception {
+//        return new Word(STACK_SEGMENT + virtualAddress.getNumber());
+//    }
+//
+//    public void setVirtualDS(Word virtualAddress, Word value) throws Exception {
+//        //System.out.println("setDS ---->" + virtualAddress);
+//        //System.out.println("DS value ---->" + value);
+//        setDS(getVirtualDS(virtualAddress), value);
+//    }
+//
+//    public Word getVirtualDSValue(Word virtualAddress) throws Exception {
+//        System.out.println("getDS ---->" + virtualAddress);
+//        System.out.println("DS value ---->" + getDSValue(getVirtualDS(virtualAddress)));
+//        //return memory.getWord(getDS(virtualAddress));
+//        return getDSValue(getVirtualDS(virtualAddress));
+//    }
+//
+//    public void setVirtualCS(Word virtualAddress, Word value) throws Exception {
+//        setCS(getVirtualCS(virtualAddress), value);
+//    }
+//
+//    public Word getVirtualCSValue(Word virtualAddress) throws Exception {
+//        return getCSValue(getVirtualCS(virtualAddress));
+//    }
+//
+//    public void setVirtualSSValue(Word value) throws Exception {
+//        setSS(getVirtualSS(getSP()), value);
+//    }
+//
+//    public Word getVirtualSSValue(Word virtualAddress) throws Exception {
+//        return getSSValue(getVirtualSS(virtualAddress));
+//    }
+//
+//    public Word getVirtualSSValue() throws Exception {
+//        return getSSValue(getVirtualSS(getSP()));
+//    }
+//
+//    public Word getVirtualSSValue(int n) throws Exception {
+//        return getSSValue(getVirtualSS(getSP().add(-1 * (n + 1))));
+//    }
+
+//---------------------------------------------------------------------------

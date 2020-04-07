@@ -2,6 +2,7 @@ package OS.VM;
 
 import OS.RM.CPU;
 import OS.Tools.Constants;
+import OS.Tools.Word;
 
 public class Stack {
 
@@ -11,24 +12,27 @@ public class Stack {
         this.cpu = cpu;
     }
 
+    //    RL ---> Stack
     public void Push() throws Exception {
 
-        if(cpu.getVirtualSS(cpu.getSP()).getBlockFromAddress() != cpu.getSSB().getNumber())
-        {
-            cpu.setSI(Constants.SYSTEM_INTERRUPTION.LOADED_WRONG_SS_BLOCK);
-            cpu.test();
-        }
-        cpu.setVirtualSSValue(cpu.getRL());
+        System.out.println("Rl ---------------------> " + cpu.getRL());
+        //    Word address, ---> RL
+        //    Word value  ---> RH
+        cpu.setRH(new Word(cpu.getRL().getNumber()));
+        cpu.setRL(new Word(cpu.getSP().getNumber()));
+        cpu.interrupt().SETSS();
         cpu.increaseSP();
     }
 
+    // Stack ---> RL
     public void Pop() throws Exception {
         cpu.decreaseSP();
-        if(cpu.getVirtualSS(cpu.getSP()).getBlockFromAddress() != cpu.getSSB().getNumber())
-        {
-            cpu.setSI(Constants.SYSTEM_INTERRUPTION.LOADED_WRONG_SS_BLOCK);
-            cpu.test();
-        }
-        cpu.setRL(cpu.getVirtualSSValue());
+
+        //    Word address, ---> RL
+        //    RL ---> value
+        cpu.setRL(new Word(cpu.getSP().getNumber()));
+        cpu.interrupt().GETSS();
+
+//        cpu.setRL(cpu.getVirtualSSValue());
     }
 }

@@ -27,12 +27,12 @@ public class OSFrame extends JFrame
         tabbedPane1.addTab("VM", vmPanel.getVMPanel());
         tabbedPane1.addTab("RM", rmPanel.getRMPanel());
         this.add(tabbedPane1);
-
     }
 
     public void setReady (boolean isReady) {
         vmPanel.setReady(isReady);
         rmPanel.setReady(isReady);
+        this.setVisible(true);
     }
 
     public VMPanel getScreenForVirtualMachine()

@@ -1,9 +1,10 @@
 package UI;
 
-import OS.Tools.ByteWord;
+import OS.Tools.Constants;
+import OS.Tools.Constants.SYSTEM_INTERRUPTION;
 import OS.Tools.Word;
-
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
@@ -56,6 +57,7 @@ public class RMPanel {
                 }
             }
         });
+
     }
 
     private boolean validation(List<String> input) {
@@ -112,29 +114,55 @@ public class RMPanel {
         labelRLMCS.setText(CS.getHEXFormat());
     }
 
-    public void setSIRegister(ByteWord SI) {
+    public void setSSBRegister(Word r) {
+       System.out.println("Image Not implemented");
+    }
+    public void setDSBRegister(Word r) {
+        System.out.println("Image Not implemented");
+    }
+    public void setCSBRegister(Word r) {
+        System.out.println("Image Not implemented");
+    }
+
+    public void setSIRegister(SYSTEM_INTERRUPTION SI) {
         labelRLMSI.setText(SI.toString());
     }
 
-    public void setCRegister(ByteWord C) {
+    public void setCRegister(Constants.CONDITIONAL_MODE C) {
         labelRLMC.setText(C.toString());
     }
 
-    public void setTIRegister(ByteWord TI) {
-        labelRLMTI.setText(TI.toString());
+    public void setTIRegister(int TI) {
+        labelRLMTI.setText(""+TI);
     }
 
-    public void setPIRegister(ByteWord PI) {
+    public void setPIRegister(Constants.PROGRAM_INTERRUPTION PI) {
         labelRLMPI.setText(PI.toString());
     }
 
-    public void setMODERegister(ByteWord MODE) {
+    public void setMODERegister(Constants.SYSTEM_MODE MODE) {
         labelRLMMode.setText(MODE.toString());
     }
 
     public boolean isReady() {
         return ready;
     }
+
+    public void setBlack()
+    {
+        labelRLMDS.setForeground(Color.BLACK);
+        labelRLMCS.setForeground(Color.BLACK);
+        labelRLMTI.setForeground(Color.BLACK);
+        labelRLMC.setForeground(Color.BLACK);
+        labelRLMPI.setForeground(Color.BLACK);
+        labelRLMSS.setForeground(Color.BLACK);
+        labelRLMPTR.setForeground(Color.BLACK);
+
+        labelRLMSI.setForeground(Color.BLACK);
+        labelRLMMode.setForeground(Color.BLACK);
+    }
+
+
 
     public void setReady(boolean ready) {
         this.ready = ready;
