@@ -32,8 +32,7 @@ public class RealMachine {
         externalMemory = new Memory(65536, 256);
         internalMemory = new Memory(16,256);
         virtualMachines = new ArrayList<VirtualMachine>(10);
-        screen.setVisible(true);
-        screen.setReady(true);
+
 
         try {
             cpu = new CPU(internalMemory, externalMemory, screen);
@@ -41,8 +40,10 @@ public class RealMachine {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        screen.setVisible(true);
+        screen.setReady(true);
         createVirtualMachine("prog.txt").doYourMagic();
-//        virtualMachines.add(createVirtualMachine("prog.txt"));
     }
 
     //to be implemented

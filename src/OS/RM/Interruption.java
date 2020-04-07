@@ -253,9 +253,9 @@ public class Interruption {
             cpu.setRH(new Word( currentInternalBlock )) ;
             cpu.getLoader().loadToInternalMemory();
 
-            System.out.println(" newExternalBlock  --- > " + newExternalBlock);
-            System.out.println(" currentInternalBlock   --- > " + currentInternalBlock);
-            System.out.println(" uzkruana is i  --- > ");
+//            System.out.println(" newExternalBlock  --- > " + newExternalBlock);
+//            System.out.println(" currentInternalBlock   --- > " + currentInternalBlock);
+//            System.out.println(" uzkruana is i  --- > ");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -274,20 +274,3 @@ public class Interruption {
 //        } catch (Exception e) {
 //        e.printStackTrace();
 //        }
-//private int getBlockByMode(int segment, Word address) {
-//
-//    try{
-//        switch (cpu.getMODE())
-//        {
-//            case SUPERVISOR_MODE:
-//                return address.getBlockFromAddress();
-//            case USER_MODE:
-//                Word virtualAddress = new Word(segment + address.getNumber());
-//                return virtualAddress.getBlockFromAddress();
-//        }
-//    }catch (Exception e)
-//    {
-//        e.printStackTrace();
-//    }
-//    return -1;
-//}
