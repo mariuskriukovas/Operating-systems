@@ -32,12 +32,12 @@
           <text value="SEGMENT POINTERS"/>
         </properties>
       </component>
-      <component id="eaf8c" class="javax.swing.JLabel" binding="labelRMDS">
+      <component id="eaf8c" class="javax.swing.JLabel" binding="labelRMDSB">
         <constraints>
           <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="DS:"/>
+          <text value="DSB:"/>
         </properties>
       </component>
       <component id="e5c6c" class="javax.swing.JLabel" binding="labelRMCS">
@@ -45,7 +45,7 @@
           <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="CS:"/>
+          <text value="CSB:"/>
         </properties>
       </component>
       <component id="47f61" class="javax.swing.JLabel" binding="labelRMSS">
@@ -53,7 +53,7 @@
           <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="SS:"/>
+          <text value="SSB:"/>
         </properties>
       </component>
       <component id="fc664" class="javax.swing.JLabel" binding="labelRMPI">
@@ -72,20 +72,20 @@
           <text value="CONTROLS"/>
         </properties>
       </component>
-      <component id="737ca" class="javax.swing.JLabel" binding="labelRLMDS">
+      <component id="737ca" class="javax.swing.JLabel" binding="labelRLMDSB">
         <constraints>
           <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="ds"/>
+          <text value="dsb"/>
         </properties>
       </component>
-      <component id="92b3c" class="javax.swing.JLabel" binding="labelRLMCS">
+      <component id="92b3c" class="javax.swing.JLabel" binding="labelRLMCSB">
         <constraints>
           <grid row="6" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="cs"/>
+          <text value="csb"/>
         </properties>
       </component>
       <component id="10d8a" class="javax.swing.JLabel" binding="labelRLMTI">
@@ -112,12 +112,12 @@
           <text value="pi"/>
         </properties>
       </component>
-      <component id="2e496" class="javax.swing.JLabel" binding="labelRLMSS">
+      <component id="2e496" class="javax.swing.JLabel" binding="labelRLMSSB">
         <constraints>
           <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="ss"/>
+          <text value="ssb"/>
         </properties>
       </component>
       <component id="8d29" class="javax.swing.JLabel" binding="labelRLMPTR">

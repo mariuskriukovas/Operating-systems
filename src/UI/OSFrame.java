@@ -1,49 +1,53 @@
 package UI;
 
 
-import javax.swing.*;
-import java.util.concurrent.Callable;
+import OS.RM.CPU;
 
-public class OSFrame extends JFrame
-{
+import javax.swing.*;
+
+public class OSFrame extends JFrame {
 
     private JTabbedPane tabbedPane1;
     private VMPanel vmPanel;
     private RMPanel rmPanel;
+    private InternalMemory internalMemory;
+    private ExternalMemory externalMemory;
 
-    int f(){
+    public Integer visible = 1;
+
+    int f() {
         System.out.println("iskviete");
         return 1;
     }
 
-    public OSFrame() throws Exception {
+    public OSFrame(CPU cpu) throws Exception {
         setTitle("OPERATING_SYSTEMS");
         setSize(500, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        vmPanel = new VMPanel();
-        rmPanel = new RMPanel();
+        vmPanel = new VMPanel(cpu, visible);
+        rmPanel = new RMPanel(cpu, visible);
+        externalMemory = new ExternalMemory(cpu);
+        internalMemory = new InternalMemory(cpu);
 
         tabbedPane1.addTab("VM", vmPanel.getVMPanel());
         tabbedPane1.addTab("RM", rmPanel.getRMPanel());
+        tabbedPane1.addTab("External memory", externalMemory.getExternalMemory());
+        tabbedPane1.addTab("Internal memory", internalMemory.getInternalMemory());
         this.add(tabbedPane1);
     }
 
-    public void setReady (boolean isReady) {
+    public void setReady(boolean isReady) {
         vmPanel.setReady(isReady);
         rmPanel.setReady(isReady);
         this.setVisible(true);
     }
 
-    public VMPanel getScreenForVirtualMachine()
-    {
+    public VMPanel getScreenForVirtualMachine() {
         return vmPanel;
     }
 
-    public RMPanel getScreenForRealMachine()
-    {
+    public RMPanel getScreenForRealMachine() {
         return rmPanel;
     }
-
-
 }
