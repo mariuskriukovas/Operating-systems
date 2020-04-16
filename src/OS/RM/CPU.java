@@ -316,12 +316,22 @@ public class CPU {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        System.out.println("PPP");
         int block = address.getBlockFromAddress();
+        System.out.println("PPP2");
         try {
-            if (block == DS.getBlockFromAddress()) VMScreen.setDataSegment(internalMemory.getBlock(block));
-            if (block == CS.getBlockFromAddress()) VMScreen.setCodeSegment(internalMemory.getBlock(block));
-            if (block == SS.getBlockFromAddress()) VMScreen.setStackSegment(internalMemory.getBlock(block));
+            if (block == DS.getBlockFromAddress()) {
+                System.out.println("DS.getBlockFromAddress()");
+                VMScreen.setDataSegment(internalMemory.getBlock(block));
+            }
+            if (block == CS.getBlockFromAddress()) {
+                System.out.println("CS.getBlockFromAddress()");
+                VMScreen.setCodeSegment(internalMemory.getBlock(block));
+            }
+            if (block == SS.getBlockFromAddress()) {
+                System.out.println("SS.getBlockFromAddress()");
+                VMScreen.setStackSegment(internalMemory.getBlock(block));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -407,15 +417,21 @@ public class CPU {
 
     public void writeDS(List<String> lines) throws Exception {
         System.out.println("lines1");
+        setRL(new Word(151));
         long address = getRL().getNumber();
-        System.out.println("lines2");
+        System.out.println("lines2 " + address);
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
+            if (line.length() != 6) {
+                while (line.length() != 6) {
+                    line = line + " ";
+                }
+            }
             System.out.println("line " + line);
             try {
                 System.out.println("before interupt1");
                 setRL(new Word(address + i));
-                System.out.println("before interupt2");
+                System.out.println("before interupt2 " + line);
                 setRH(new Word(line, Word.WORD_TYPE.SYMBOLIC));
                 System.out.println("before interupt");
                 interrupt().SETDS();
@@ -424,7 +440,6 @@ public class CPU {
                 e.printStackTrace();
             }
         }
-        interrupt().SETDS();
         System.out.println("Finish writing");
         for (int i = 0; i < lines.size(); i++) {
             externalMemory.getWord(address + i);

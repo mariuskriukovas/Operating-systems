@@ -139,7 +139,7 @@ public class RMPanel {
         setBlack();
         labelRLMDSB.setForeground(Color.RED);
         labelRLMDSB.setText(DS.getHEXFormat());
-        checkVisibility();
+//        checkVisibility();
     }
 
     public void setCSBRegister(Word CS) {
@@ -153,7 +153,7 @@ public class RMPanel {
         setBlack();
         labelRLMSI.setForeground(Color.RED);
         labelRLMSI.setText(SI.toString());
-        checkVisibility();
+//        checkVisibility();
     }
 
     public void setCRegister(Constants.CONDITIONAL_MODE C) {

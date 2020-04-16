@@ -62,6 +62,7 @@ public class Word {
     }
 
     private void  createSymbolicWord(String word) throws Exception {
+        System.out.println("BYBIS" + word);
         if(word.length() != WORD_LENGTH)throw new Exception("Bad length for simbolic  word");
         for (int i = 0; i<WORD_LENGTH; i++)
         {

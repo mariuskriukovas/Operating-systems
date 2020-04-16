@@ -56,7 +56,6 @@ public class RealMachine {
             cpu.setRH(new Word(externalBlockBegin));
             cpu.createMemoryTable();
             cpu.loadVirtualMachineMemory();
-
             System.out.println("Nuo" + " " + cpu.getPTRValue(0) + " iki " + cpu.getPTRValue(255));
         } catch (Exception e) {
             e.printStackTrace();
@@ -69,5 +68,4 @@ public class RealMachine {
 
     // JM1256 IF (OLD_CS != NEW_CS) SI = 4 -> test()
     // AD12 -> test() if (SI + PI != 0 || TI == 0) MODE = 1
-
 }

@@ -141,14 +141,14 @@ public class VMPanel {
         setBlack();
         labelVRRL.setForeground(Color.RED);
         labelVRRL.setText(RL.getHEXFormat());
-        checkVisibility();
+//        checkVisibility();
     }
 
     public void setRHRegister(Word RH) {
         setBlack();
         labelVirMRH.setForeground(Color.RED);
         labelVirMRH.setText(RH.getHEXFormat());
-        checkVisibility();
+//        checkVisibility();
     }
 
     public void setCRegister(CONDITIONAL_MODE C) {
