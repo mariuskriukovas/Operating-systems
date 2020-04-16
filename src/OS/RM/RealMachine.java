@@ -1,17 +1,14 @@
 package OS.RM;
 
 import OS.RM.Process.JobToSwap;
-import OS.Tools.Constants;
 import OS.Tools.Memory;
 import OS.Tools.Word;
-import OS.VM.Stack;
 import OS.VM.VirtualMachine;
 import UI.OSFrame;
 
 import java.util.ArrayList;
 
-import static OS.Tools.Constants.SYSTEM_MODE.*;
-
+import static OS.Tools.Constants.SYSTEM_MODE.SUPERVISOR_MODE;
 
 public class RealMachine {
 
@@ -27,22 +24,18 @@ public class RealMachine {
 
     private OSFrame screen;
 
-    RealMachine(OSFrame screen) {
-        this.screen = screen;
+    RealMachine() throws Exception {
         externalMemory = new Memory(65536, 256);
-        internalMemory = new Memory(16,256);
+        internalMemory = new Memory(16, 256);
         virtualMachines = new ArrayList<VirtualMachine>(10);
 
 
         try {
-            cpu = new CPU(internalMemory, externalMemory, screen);
+            cpu = new CPU(internalMemory, externalMemory);
             jobToSwap = new JobToSwap(cpu);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        screen.setVisible(true);
-        screen.setReady(true);
         createVirtualMachine("prog.txt").doYourMagic();
     }
 
@@ -63,18 +56,16 @@ public class RealMachine {
             cpu.setRH(new Word(externalBlockBegin));
             cpu.createMemoryTable();
             cpu.loadVirtualMachineMemory();
-
             System.out.println("Nuo" + " " + cpu.getPTRValue(0) + " iki " + cpu.getPTRValue(255));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return new VirtualMachine(fileName,cpu);
+        return new VirtualMachine(fileName, cpu);
     }
 
 //----------------------------------------------------------------------------------
 
     // JM1256 IF (OLD_CS != NEW_CS) SI = 4 -> test()
     // AD12 -> test() if (SI + PI != 0 || TI == 0) MODE = 1
-
 }

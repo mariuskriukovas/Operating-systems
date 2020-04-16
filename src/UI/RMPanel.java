@@ -1,8 +1,10 @@
 package UI;
 
+import OS.RM.CPU;
 import OS.Tools.Constants;
 import OS.Tools.Constants.SYSTEM_INTERRUPTION;
 import OS.Tools.Word;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,24 +15,24 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 public class RMPanel {
-    public static final String NO_INPUT = "NO INPUT";
-    public static final String NOT_MULTIPLE_OF_16 = "NOT MULTIPLE OF 16";
-    public static final String WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1 = "WORD LENGTH MORE THAN 6 OR LESS THAN 1";
-    public static final String ALL_GOOD = "ALL GOOD";
+    private static final String NO_INPUT = "NO INPUT";
+    private static final String NOT_MULTIPLE_OF_16 = "NOT MULTIPLE OF 16";
+    private static final String WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1 = "WORD LENGTH MORE THAN 6 OR LESS THAN 1";
+    private static final String ALL_GOOD = "ALL GOOD";
     private JLabel labelRMC;
     private JLabel labelRMTI;
     private JLabel labelRMSegmentPointers;
-    private JLabel labelRMDS;
+    private JLabel labelRMDSB;
     private JLabel labelRMCS;
     private JTextArea textAreaInput;
     private JLabel labelRMSS;
     private JLabel labelRMPI;
-    private JLabel labelRLMDS;
-    private JLabel labelRLMCS;
+    private JLabel labelRLMDSB;
+    private JLabel labelRLMCSB;
     private JLabel labelRLMTI;
     private JLabel labelRLMC;
     private JLabel labelRLMPI;
-    private JLabel labelRLMSS;
+    private JLabel labelRLMSSB;
     private JLabel labelRLMPTR;
     private JLabel labelPTR;
     private JLabel labelRMSI;
@@ -44,8 +46,12 @@ public class RMPanel {
     private JLabel commentWindow;
     private boolean ready = false;
 
-    RMPanel() {
+    private CPU cpu;
+    Integer visible;
 
+    RMPanel(CPU cpu, Integer visible) {
+        this.cpu = cpu;
+        this.visible = visible;
         inputScroll.setViewportView(textAreaInput);
         ENTRYButton.setEnabled(false);
         ENTRYButton.addActionListener(new ActionListener() {
@@ -53,7 +59,14 @@ public class RMPanel {
             public void actionPerformed(ActionEvent e) {
                 List<String> lines = Arrays.asList(textAreaInput.getText().split("\\n"));
                 if (validation(lines)) {
-                    System.out.println(lines); // DO SOMETHING
+                    System.out.println(lines);
+                    try {
+                        cpu.writeDS(lines);
+                        System.out.println("DADA");
+                    } catch (Exception ex) {
+                        System.out.println("LALA");
+                        ex.printStackTrace();
+                    }
                 }
             }
         });
@@ -93,76 +106,100 @@ public class RMPanel {
 
     public void setSegmentRegisters(Word PTR, Word SS, Word DS, Word CS) throws Exception {
         labelRLMPTR.setText(PTR.getHEXFormat());
-        labelRLMSS.setText(SS.getHEXFormat());
-        labelRLMDS.setText(DS.getHEXFormat());
-        labelRLMCS.setText(CS.getHEXFormat());
+        labelRLMSSB.setText(SS.getHEXFormat());
+        labelRLMDSB.setText(DS.getHEXFormat());
+        labelRLMCSB.setText(CS.getHEXFormat());
+    }
+
+    private void checkVisibility() {
+        synchronized (visible) {
+            try {
+                visible.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void setPTRRegister(Word PTR) {
+        setBlack();
+        labelRLMPTR.setForeground(Color.RED);
         labelRLMPTR.setText(PTR.getHEXFormat());
+        checkVisibility();
     }
 
-    public void setSSRegister(Word SS) {
-        labelRLMSS.setText(SS.getHEXFormat());
+    public void setSSBRegister(Word SS) {
+        setBlack();
+        labelRLMSSB.setForeground(Color.RED);
+        labelRLMSSB.setText(SS.getHEXFormat());
+        checkVisibility();
     }
 
-    public void setDSRegister(Word DS) {
-        labelRLMDS.setText(DS.getHEXFormat());
+    public void setDSBRegister(Word DS) {
+        setBlack();
+        labelRLMDSB.setForeground(Color.RED);
+        labelRLMDSB.setText(DS.getHEXFormat());
+//        checkVisibility();
     }
 
-    public void setCSRegister(Word CS) {
-        labelRLMCS.setText(CS.getHEXFormat());
-    }
-
-    public void setSSBRegister(Word r) {
-       System.out.println("Image Not implemented");
-    }
-    public void setDSBRegister(Word r) {
-        System.out.println("Image Not implemented");
-    }
-    public void setCSBRegister(Word r) {
-        System.out.println("Image Not implemented");
+    public void setCSBRegister(Word CS) {
+        setBlack();
+        labelRLMCSB.setForeground(Color.RED);
+        labelRLMCSB.setText(CS.getHEXFormat());
+        checkVisibility();
     }
 
     public void setSIRegister(SYSTEM_INTERRUPTION SI) {
+        setBlack();
+        labelRLMSI.setForeground(Color.RED);
         labelRLMSI.setText(SI.toString());
+//        checkVisibility();
     }
 
     public void setCRegister(Constants.CONDITIONAL_MODE C) {
+        setBlack();
+        labelRLMC.setForeground(Color.RED);
         labelRLMC.setText(C.toString());
+        checkVisibility();
     }
 
     public void setTIRegister(int TI) {
-        labelRLMTI.setText(""+TI);
+        setBlack();
+        labelRLMTI.setForeground(Color.RED);
+        labelRLMTI.setText("" + TI);
+        checkVisibility();
     }
 
     public void setPIRegister(Constants.PROGRAM_INTERRUPTION PI) {
+        setBlack();
+        labelRLMPI.setForeground(Color.RED);
         labelRLMPI.setText(PI.toString());
+        checkVisibility();
     }
 
     public void setMODERegister(Constants.SYSTEM_MODE MODE) {
+        setBlack();
+        labelRLMMode.setForeground(Color.RED);
         labelRLMMode.setText(MODE.toString());
+        checkVisibility();
     }
 
     public boolean isReady() {
         return ready;
     }
 
-    public void setBlack()
-    {
-        labelRLMDS.setForeground(Color.BLACK);
-        labelRLMCS.setForeground(Color.BLACK);
+    public void setBlack() {
+        labelRLMDSB.setForeground(Color.BLACK);
+        labelRLMCSB.setForeground(Color.BLACK);
         labelRLMTI.setForeground(Color.BLACK);
         labelRLMC.setForeground(Color.BLACK);
         labelRLMPI.setForeground(Color.BLACK);
-        labelRLMSS.setForeground(Color.BLACK);
+        labelRLMSSB.setForeground(Color.BLACK);
         labelRLMPTR.setForeground(Color.BLACK);
 
         labelRLMSI.setForeground(Color.BLACK);
         labelRLMMode.setForeground(Color.BLACK);
     }
-
-
 
     public void setReady(boolean ready) {
         this.ready = ready;

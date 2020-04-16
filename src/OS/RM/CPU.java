@@ -10,9 +10,14 @@ import UI.RMPanel;
 import UI.VMPanel;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import static OS.Tools.Constants.*;
-import static OS.Tools.Constants.SYSTEM_INTERRUPTION.*;
+import static OS.Tools.Constants.CODE_SEGMENT;
+import static OS.Tools.Constants.CONDITIONAL_MODE;
+import static OS.Tools.Constants.DATA_SEGMENT;
+import static OS.Tools.Constants.PROGRAM_INTERRUPTION;
+import static OS.Tools.Constants.STACK_SEGMENT;
+import static OS.Tools.Constants.SYSTEM_MODE;
 
 
 public class CPU {
@@ -51,52 +56,51 @@ public class CPU {
 
     private final Loader loader;
     private final Interruption interruption;
+    private OSFrame screen;
 
 
-    CPU(Memory internal, Memory external, OSFrame screen) throws Exception {
+    CPU(Memory internal, Memory external) throws Exception {
         this.externalMemory = external;
         this.internalMemory = internal;
         loader = new Loader(this);
         interruption = new Interruption(this);
 
+        this.screen = new OSFrame(this);
+        screen.setVisible(true);
+        screen.setReady(true);
         RMScreen = screen.getScreenForRealMachine();
         VMScreen = screen.getScreenForVirtualMachine();
     }
 
-    public Interruption interrupt()
-    {
+    public Interruption interrupt() {
         return interruption;
     }
 
     private ArrayList<Object> OSStack = new ArrayList<Object>(10);
 
-    public void saveRegisterState()
-    {
+    public void saveRegisterState() {
         try {
             OSStack.add(new Word(getRH().getNumber()));
             OSStack.add(new Word(getRL().getNumber()));
             OSStack.add(getSI());
             OSStack.add(getMODE());
-        }catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void restoreRegisterState()
-    {
+    public void restoreRegisterState() {
         try {
-            setMODE((SYSTEM_MODE) OSStack.remove(OSStack.size()-1));
-            setSI((SYSTEM_INTERRUPTION) OSStack.remove(OSStack.size()-1));
-            setRL((Word) OSStack.remove(OSStack.size()-1));
-            setRH((Word) OSStack.remove(OSStack.size()-1));
-        }catch (Exception e)
-        {
+            setMODE((SYSTEM_MODE) OSStack.remove(OSStack.size() - 1));
+            setSI((SYSTEM_INTERRUPTION) OSStack.remove(OSStack.size() - 1));
+            setRL((Word) OSStack.remove(OSStack.size() - 1));
+            setRH((Word) OSStack.remove(OSStack.size() - 1));
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    //Real Machine part
+    //Real Machine parthttps://www.youtube.com/watch?v=aJB6s-IWGH4&fbclid=IwAR3sRvdIWGlZyWjnXsPqn7tr6CbpiSTpR-btr9k9JgXer3YCcmAaViorVdU
 
     public Word getPTR() throws Exception {
         RMScreen.setPTRRegister(PTR);
@@ -117,13 +121,12 @@ public class CPU {
     }
 
     public Word getDS() throws Exception {
-        switch (MODE)
-        {
+        switch (MODE) {
             case SUPERVISOR_MODE:
-                RMScreen.setDSRegister(DS);
+                RMScreen.setDSBRegister(DS);
                 return DS;
             case USER_MODE:
-                RMScreen.setDSRegister(new Word(DATA_SEGMENT));
+                RMScreen.setDSBRegister(new Word(DATA_SEGMENT));
                 return new Word(DATA_SEGMENT);
             default:
                 return new Word(0);
@@ -131,13 +134,12 @@ public class CPU {
     }
 
     public Word getSS() throws Exception {
-        switch (MODE)
-        {
+        switch (MODE) {
             case SUPERVISOR_MODE:
-                RMScreen.setSSRegister(SS);
+                RMScreen.setSSBRegister(SS);
                 return SS;
             case USER_MODE:
-                RMScreen.setSSRegister(new Word(STACK_SEGMENT));
+                RMScreen.setSSBRegister(new Word(STACK_SEGMENT));
                 return new Word(STACK_SEGMENT);
             default:
                 return new Word(0);
@@ -146,13 +148,12 @@ public class CPU {
 
     public Word getCS() throws Exception {
 
-        switch (MODE)
-        {
+        switch (MODE) {
             case SUPERVISOR_MODE:
-                RMScreen.setCSRegister(CS);
+                RMScreen.setCSBRegister(CS);
                 return CS;
             case USER_MODE:
-                RMScreen.setCSRegister(new Word(CODE_SEGMENT));
+                RMScreen.setCSBRegister(new Word(CODE_SEGMENT));
                 return new Word(CODE_SEGMENT);
             default:
                 return null;
@@ -191,17 +192,17 @@ public class CPU {
 
     public void setDS(Word word) {
         DS.setWord(word);
-        RMScreen.setDSRegister(DS);
+        RMScreen.setDSBRegister(DS);
     }
 
     public void setSS(Word word) {
         SS.setWord(word);
-        RMScreen.setSSRegister(SS);
+        RMScreen.setSSBRegister(SS);
     }
 
     public void setCS(Word word) {
         CS.setWord(word);
-        RMScreen.setCSRegister(CS);
+        RMScreen.setCSBRegister(CS);
     }
 
 
@@ -248,7 +249,7 @@ public class CPU {
     }
 
     public void decreaseSP() throws Exception {
-        SP.setWord(SP.add(-1));
+        SP.setWord(SP.add(- 1));
         VMScreen.setStackPointer(SP);
     }
 
@@ -315,12 +316,22 @@ public class CPU {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        int block =  address.getBlockFromAddress();
+        System.out.println("PPP");
+        int block = address.getBlockFromAddress();
+        System.out.println("PPP2");
         try {
-            if(block == DS.getBlockFromAddress()) VMScreen.setDataSegment(internalMemory.getBlock(block));
-            if(block == CS.getBlockFromAddress()) VMScreen.setCodeSegment(internalMemory.getBlock(block));
-            if(block == SS.getBlockFromAddress()) VMScreen.setStackSegment(internalMemory.getBlock(block));
+            if (block == DS.getBlockFromAddress()) {
+                System.out.println("DS.getBlockFromAddress()");
+                VMScreen.setDataSegment(internalMemory.getBlock(block));
+            }
+            if (block == CS.getBlockFromAddress()) {
+                System.out.println("CS.getBlockFromAddress()");
+                VMScreen.setCodeSegment(internalMemory.getBlock(block));
+            }
+            if (block == SS.getBlockFromAddress()) {
+                System.out.println("SS.getBlockFromAddress()");
+                VMScreen.setStackSegment(internalMemory.getBlock(block));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -328,11 +339,11 @@ public class CPU {
     }
 
     public Word getFromInternalMemory(Word address) throws Exception {
-        int block =  address.getBlockFromAddress();
+        int block = address.getBlockFromAddress();
         try {
-            if(block == DS.getBlockFromAddress()) VMScreen.setDataSegment(internalMemory.getBlock(block));
-            if(block == CS.getBlockFromAddress()) VMScreen.setCodeSegment(internalMemory.getBlock(block));
-            if(block == SS.getBlockFromAddress()) VMScreen.setStackSegment(internalMemory.getBlock(block));
+            if (block == DS.getBlockFromAddress()) VMScreen.setDataSegment(internalMemory.getBlock(block));
+            if (block == CS.getBlockFromAddress()) VMScreen.setCodeSegment(internalMemory.getBlock(block));
+            if (block == SS.getBlockFromAddress()) VMScreen.setStackSegment(internalMemory.getBlock(block));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -342,16 +353,16 @@ public class CPU {
     //int internalBlockBegin --> RL
     //int externalBlockBegin --> RH
 
-    public void createMemoryTable(){
+    public void createMemoryTable() {
         int internalBlockBegin = (int) RL.getNumber();
-        int externalBlockBegin =  (int) RH.getNumber();
+        int externalBlockBegin = (int) RH.getNumber();
 
         try {
             setPTR(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin)));
             for (int i = 0; i < Constants.BLOCK_LENGTH; i++) {
                 setPTRValue(i, new Word(externalMemory.getBlockBeginAddress(externalBlockBegin + i)));
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -365,22 +376,22 @@ public class CPU {
             setDS(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 2)));
             setCS(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 3)));
 
-            setSSB(new Word(STACK_SEGMENT/256));
-            setCSB(new Word(CODE_SEGMENT/256));
-            setDSB(new Word(DATA_SEGMENT/256));
+            setSSB(new Word(STACK_SEGMENT / 256));
+            setCSB(new Word(CODE_SEGMENT / 256));
+            setDSB(new Word(DATA_SEGMENT / 256));
 
             //    int fromBlock -->RL
             //    int toBlock --> RH
-            setRL(new Word( getPTRValue( (int) CSB.getNumber()).getBlockFromAddress() ));
-            setRH(new Word( getCS().getBlockFromAddress() )) ;
+            setRL(new Word(getPTRValue((int) CSB.getNumber()).getBlockFromAddress()));
+            setRH(new Word(getCS().getBlockFromAddress()));
             loader.loadToInternalMemory();
 
-            setRL(new Word( getPTRValue((int)SSB.getNumber()).getBlockFromAddress() ));
-            setRH(new Word( getSS().getBlockFromAddress() )) ;
+            setRL(new Word(getPTRValue((int) SSB.getNumber()).getBlockFromAddress()));
+            setRH(new Word(getSS().getBlockFromAddress()));
             loader.loadToInternalMemory();
 
-            setRL(new Word( getPTRValue((int)DSB.getNumber()).getBlockFromAddress() ));
-            setRH(new Word( getDS().getBlockFromAddress() )) ;
+            setRL(new Word(getPTRValue((int) DSB.getNumber()).getBlockFromAddress()));
+            setRH(new Word(getDS().getBlockFromAddress()));
             loader.loadToInternalMemory();
 
         } catch (Exception e) {
@@ -388,23 +399,58 @@ public class CPU {
         }
     }
 
-    public void setMODE(SYSTEM_MODE flag)
-    {
+    public void setMODE(SYSTEM_MODE flag) {
         MODE = flag;
     }
 
-    public Loader getLoader()
-    {
+    public Loader getLoader() {
         return loader;
     }
 
-    public VMPanel getVMScreen()
-    {
+    public VMPanel getVMScreen() {
         return VMScreen;
     }
 
-    public RMPanel getRMScreen()
-    {
+    public RMPanel getRMScreen() {
         return RMScreen;
+    }
+
+    public void writeDS(List<String> lines) throws Exception {
+        System.out.println("lines1");
+        setRL(new Word(151));
+        long address = getRL().getNumber();
+        System.out.println("lines2 " + address);
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line.length() != 6) {
+                while (line.length() != 6) {
+                    line = line + " ";
+                }
+            }
+            System.out.println("line " + line);
+            try {
+                System.out.println("before interupt1");
+                setRL(new Word(address + i));
+                System.out.println("before interupt2 " + line);
+                setRH(new Word(line, Word.WORD_TYPE.SYMBOLIC));
+                System.out.println("before interupt");
+                interrupt().SETDS();
+                System.out.println("after interupt");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Finish writing");
+        for (int i = 0; i < lines.size(); i++) {
+            externalMemory.getWord(address + i);
+        }
+    }
+
+    public Memory getInternalMemory() {
+        return internalMemory;
+    }
+
+    public Memory getExternalMemory() {
+        return externalMemory;
     }
 }
