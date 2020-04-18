@@ -43,7 +43,7 @@ public class ExternalMemory {
     }
 
     public void setTable(int blockNumber) throws Exception {
-        Word[] content = cpu.getInternalMemory().getBlock(blockNumber);
+        Word[] content = cpu.getExternalMemory().getBlock(blockNumber);
         List<String> values = stream(content).map(Word::getHEXFormat).collect(toList());
         Object[] columnNames = new Object[6];
         String[][] tableOfValues = new String[256][6];

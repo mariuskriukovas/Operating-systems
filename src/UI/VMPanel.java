@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import static UI.OSFrame.TickMode;
+
 public class VMPanel {
     private JLabel labelDataSegment;
     private JLabel labelCodeSegment;
@@ -43,10 +45,12 @@ public class VMPanel {
     private JLabel labelVMC;
     private JLabel labelVRC;
     private JLabel labelVRIC;
+    private final JTabbedPane tabbedPanel;
+
 
     private JPanel VMPanel;
-    private JButton INCSIButton;
-    private JButton NODEBUGButton;
+    private JButton Tick;
+    private JButton Refresh;
 
     private boolean ready = false;
 
@@ -54,42 +58,44 @@ public class VMPanel {
 
     private CPU cpu;
 
-    VMPanel(CPU cpu, Integer visible) {
+    VMPanel(CPU cpu, Integer visible,JTabbedPane tabbedPanel) {
 
-        NODEBUGButton.setEnabled(false);
-        INCSIButton.setEnabled(false);
+        Refresh.setEnabled(false);
+        Tick.setEnabled(false);
         this.visible = visible;
         this.cpu = cpu;
+        this.tabbedPanel=tabbedPanel;
 
-        INCSIButton.addActionListener(new ActionListener() {
+        Tick.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
-
                     synchronized (VMPanel.this.visible) {
                         VMPanel.this.visible.notify();
                     }
-
                     System.out.println("Tick");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
-    }
 
-    public void setNoDebugFunction(Callable function) {
-        NODEBUGButton.addActionListener(new ActionListener() {
+        Refresh.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
+                System.out.println("Refresh");
                 try {
-                    function.call();
-                } catch (Exception e) {
+                    setDataSegment(cpu.getInternalMemory().getBlock(cpu.getDS().getBlockFromAddress()));
+                    setCodeSegment(cpu.getInternalMemory().getBlock(cpu.getCS().getBlockFromAddress()));
+                    setStackSegment(cpu.getInternalMemory().getBlock(cpu.getSS().getBlockFromAddress()));
+                }catch (Exception e){
                     e.printStackTrace();
                 }
             }
         });
+
     }
+
 
     JPanel getVMPanel() {
         return this.VMPanel;
@@ -127,28 +133,28 @@ public class VMPanel {
         labelVRIC.setText(IC.getHEXFormat());
     }
 
-    public void setDataRegisters(Word RL, Word RH) {
-        setBlack();
-        labelVRRL.setForeground(Color.RED);
-        labelVirMRH.setForeground(Color.RED);
-        labelVRRL.setText(RL.getHEXFormat());
-        labelVirMRH.setText(RH.getHEXFormat());
-        checkVisibility();
-    }
+//    public void setDataRegisters(Word RL, Word RH) {
+//        setBlack();
+//        labelVRRL.setForeground(Color.RED);
+//        labelVirMRH.setForeground(Color.RED);
+//        labelVRRL.setText(RL.getHEXFormat());
+//        labelVirMRH.setText(RH.getHEXFormat());
+//        checkVisibility();
+//    }
 
     // mazdaug pagal sita modeli visus
     public void setRLRegister(Word RL) {
         setBlack();
         labelVRRL.setForeground(Color.RED);
         labelVRRL.setText(RL.getHEXFormat());
-//        checkVisibility();
+        checkVisibility();
     }
 
     public void setRHRegister(Word RH) {
         setBlack();
         labelVirMRH.setForeground(Color.RED);
         labelVirMRH.setText(RH.getHEXFormat());
-//        checkVisibility();
+        checkVisibility();
     }
 
     public void setCRegister(CONDITIONAL_MODE C) {
@@ -158,17 +164,17 @@ public class VMPanel {
         checkVisibility();
     }
 
-    public void setStackSegment(Word[] arr) throws Exception {
+    private void setStackSegment(Word[] arr) throws Exception {
         listStackSegment.setListData(arr);
         scrollRMSS.setViewportView(listStackSegment);
     }
 
-    public void setDataSegment(Word[] arr) throws Exception {
+    private void setDataSegment(Word[] arr) throws Exception {
         listDataSegment.setListData(arr);
         scrollRMDS.setViewportView(listDataSegment);
     }
 
-    public void setCodeSegment(Word[] arr) throws Exception {
+    private void setCodeSegment(Word[] arr) throws Exception {
         List<String> str = Arrays.stream(arr).map(x -> x.getASCIIFormat()).collect(Collectors.toList());
         listCodeSegment.setListData(str.toArray());
         scrollRMCS.setViewportView(listCodeSegment);
@@ -193,12 +199,17 @@ public class VMPanel {
         labelVRMSP.setForeground(Color.BLACK);
         labelVRC.setForeground(Color.BLACK);
         labelVRIC.setForeground(Color.BLACK);
+
+        tabbedPanel.setSelectedIndex(1);
     }
 
     private void checkVisibility() {
         synchronized (visible) {
             try {
-                visible.wait();
+                if (TickMode)
+                {
+                    visible.wait();
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -211,7 +222,7 @@ public class VMPanel {
 
     public void setReady(boolean ready) {
         this.ready = ready;
-        INCSIButton.setEnabled(true);
-        NODEBUGButton.setEnabled(true);
+        Tick.setEnabled(true);
+        Refresh.setEnabled(true);
     }
 }

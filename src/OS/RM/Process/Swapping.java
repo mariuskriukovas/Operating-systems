@@ -1,5 +1,6 @@
-package OS.RM;
+package OS.RM.Process;
 
+import OS.RM.CPU;
 import OS.Tools.Word;
 
 import static OS.Tools.Constants.CODE_SEGMENT;
@@ -11,11 +12,15 @@ import static OS.Tools.Constants.SYSTEM_INTERRUPTION.LOADED_WRONG_SS_BLOCK;
 import static OS.Tools.Constants.SYSTEM_MODE.SUPERVISOR_MODE;
 import static OS.Tools.Constants.SYSTEM_MODE.USER_MODE;
 
-public class Interruption {
+public class Swapping {
+
+//----------------------------------------------------------------------------------
+// JM1256 IF (OLD_CS != NEW_CS) SI = 4 -> test()
+// AD12 -> test() if (SI + PI != 0 || TI == 0) MODE = 1
 
     private final CPU cpu;
 
-    Interruption(CPU cpu) {
+    public Swapping(CPU cpu) {
         this.cpu = cpu;
     }
 
@@ -54,48 +59,32 @@ public class Interruption {
     //    Word address, ---> RL
     //    Word value  ---> RH
     public void SETDS() {
-        System.out.println("1");
         cpu.setMODE(SUPERVISOR_MODE);
-        System.out.println("2");
         Word address = cpu.getRL().copy();
-        System.out.println("3");
         Word value = cpu.getRH().copy();
-        System.out.println("4");
 
         int word = address.getWordFromAddress();
-        System.out.println("5");
         int block = address.getBlockFromAddress();
-        System.out.println("6");
 
         if (block != cpu.getDSB().getNumber())
-            System.out.println("7");
         {
             try {
                 cpu.setSI(LOADED_WRONG_DS_BLOCK);
-                System.out.println("8");
                 //RL-->BLOCK
                 cpu.setRL(new Word(block));
-                System.out.println("9");
                 TEST();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("10");
 
         try {
-            System.out.println("11");
             Word virtualAddress = cpu.getDS().add(word);
-            System.out.println("12");
-            System.out.println(virtualAddress);
-            System.out.println(value);
             cpu.writeToInternalMemory(virtualAddress, value);
-            System.out.println("13");
         } catch (Exception e) {
             e.printStackTrace();
         }
         cpu.setMODE(USER_MODE);
-        System.out.println("14");
     }
 
     //    Word address, ---> RL

@@ -1,9 +1,10 @@
-package OS.VM;
+package OS.RM.Process;
 
 import OS.RM.Process.Parser;
 import OS.RM.CPU;
 import OS.Tools.Constants;
 import OS.Tools.Word;
+import OS.VM.Interpretator;
 import UI.OSFrame;
 import OS.Tools.Constants.SYSTEM_INTERRUPTION;
 
@@ -18,15 +19,10 @@ public class VirtualMachine {
     private Interpretator interpretator;
     private final String processID;
 
-
     private OSFrame screen;
 
     public VirtualMachine(String ID, CPU cpu)
     {
-//        this.screen = screen;
-//        screen.getScreenForVirtualMachine().setIncButtonFunction(() -> doYourMagicStepByStep());
-//        screen.getScreenForVirtualMachine().setNodeBugButtonFunction(() -> doYourMagic());
-
         processID = ID;
         try {
             this.cpu = cpu;
@@ -38,42 +34,27 @@ public class VirtualMachine {
     }
 
 
-    public Integer doYourMagic(){
+    public void doYourMagic(){
         cpu.setMODE(USER_MODE);
         try{
             while (!cpu.getSI().equals(SYSTEM_INTERRUPTION.HALT)) {
+                if (cpu.getTI()==0){
+                    cpu.setSI(SYSTEM_INTERRUPTION.TIMER_INTERUPTION);
+                    return;
+                }
                 cpu.saveRegisterState();
                     cpu.setRL(cpu.getIC().copy());
-                    cpu.interrupt().GETCS();
+                    cpu.getSwapping().GETCS();
                     String command = cpu.getRL().getASCIIFormat();
+                    System.out.println(" ---------------  > "+command);
                 cpu.restoreRegisterState();
                 interpretator.execute(command);
                 cpu.increaseIC();
+                cpu.decTI();
             }
         }catch (Exception e)
         {
              e.printStackTrace();
-            return -1;
         }
-        return 1;
-    }
-
-    public Integer doYourMagicStepByStep() {
-        cpu.setMODE(USER_MODE);
-        if (!cpu.getSI().equals(SYSTEM_INTERRUPTION.HALT)) {
-            try {
-                cpu.saveRegisterState();
-                    cpu.setRL(cpu.getIC().copy());
-                    cpu.interrupt().GETCS();
-                    String command = cpu.getRL().getASCIIFormat();
-                cpu.restoreRegisterState();
-                interpretator.execute(command);
-                cpu.increaseIC();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-            return 1;
-        }
-        return -1;
     }
 }

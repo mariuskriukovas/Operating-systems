@@ -12,13 +12,15 @@ public class Constants {
 
     public static final long MAX_NUMBER = 16777215;
 
-
     public enum CONDITIONAL_MODE
     {
         NONE,
         ZERO,
         ONE,
-        TWO
+        TWO,
+        MORE,
+        EQUAL,
+        LESS,
     }
 
 
@@ -29,15 +31,24 @@ public class Constants {
         SUPERVISOR_MODE,
     }
 
+    public enum PROCESS_STATUS
+    {
+        COMPLETED,
+        STILL_IN_PROCESS,
+        FAILED,
+    }
+
     public enum PROGRAM_INTERRUPTION
     {
         NONE,
-
+        COMPLETED,
+        TIMER_INTERUPTION,
     }
 
     public enum SYSTEM_INTERRUPTION
     {
         NONE,
+        TIMER_INTERUPTION,
         LOADED_WRONG_SS_BLOCK,
         LOADED_WRONG_DS_BLOCK,
         LOADED_WRONG_CS_BLOCK,

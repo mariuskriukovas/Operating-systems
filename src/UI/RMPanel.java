@@ -12,13 +12,10 @@ import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.List;
 
+import static UI.OSFrame.TickMode;
 import static java.util.stream.Collectors.toList;
 
 public class RMPanel {
-    private static final String NO_INPUT = "NO INPUT";
-    private static final String NOT_MULTIPLE_OF_16 = "NOT MULTIPLE OF 16";
-    private static final String WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1 = "WORD LENGTH MORE THAN 6 OR LESS THAN 1";
-    private static final String ALL_GOOD = "ALL GOOD";
     private JLabel labelRMC;
     private JLabel labelRMTI;
     private JLabel labelRMSegmentPointers;
@@ -44,60 +41,117 @@ public class RMPanel {
     private JPanel RMPanel;
     private JScrollPane inputScroll;
     private JLabel commentWindow;
+    private JTextArea screen;
+    private JLabel Screen;
+    private JButton TickButton;
+    private JLabel process;
+    private JButton InputKey;
     private boolean ready = false;
+    private final JTabbedPane tabbedPanel;
 
     private CPU cpu;
     Integer visible;
 
-    RMPanel(CPU cpu, Integer visible) {
+    RMPanel(CPU cpu, Integer visible, JTabbedPane tabbedPanel) {
         this.cpu = cpu;
         this.visible = visible;
+        this.tabbedPanel=tabbedPanel;
         inputScroll.setViewportView(textAreaInput);
         ENTRYButton.setEnabled(false);
-        ENTRYButton.addActionListener(new ActionListener() {
+        InputKey.setVisible(false);
+
+        TickButton.addActionListener(TickAction);
+    }
+
+
+    public JButton getENTRYButton() {
+        return ENTRYButton;
+    }
+
+    private ActionListener TickAction = new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                List<String> lines = Arrays.asList(textAreaInput.getText().split("\\n"));
-                if (validation(lines)) {
-                    System.out.println(lines);
-                    try {
-                        cpu.writeDS(lines);
-                        System.out.println("DADA");
-                    } catch (Exception ex) {
-                        System.out.println("LALA");
-                        ex.printStackTrace();
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    synchronized (RMPanel.this.visible) {
+                        RMPanel.this.visible.notify();
                     }
+
+                    System.out.println("Tick");
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-        });
+    };
 
+    //RUN "prog.txt"
+    //CREATEVM "prog.txt"
+    //TICKMODE ON
+    //TICKMODE OFF
+
+
+    void testInteractions(){
+//        cpu.getJobGorvernor().createVirtualMachine( "prog.txt");
+//        cpu.getJobGorvernor().createVirtualMachine( "prog2.txt");
+//        cpu.getJobGorvernor().createVirtualMachine( "prog3.txt");
+//        cpu.getJobGorvernor().runAll();
+        cpu.getPrintLine().read();
     }
 
-    private boolean validation(List<String> input) {
-        if (input.size() == 0) { // no input
-            System.out.println(NO_INPUT);
-            commentWindow.setText(NO_INPUT);
-            return false;
-        } else if (input.size() % 16 != 0) { // not multiple of 16
-            System.out.println(NOT_MULTIPLE_OF_16);
-            commentWindow.setText(NOT_MULTIPLE_OF_16);
-            return false;
-        } else if (checkWordLength(input)) { // word length more than 6
-            System.out.println(WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1);
-            commentWindow.setText(WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1);
-            return false;
-        } else {
-            System.out.println(ALL_GOOD); //ALL GOOD BITCH
-            commentWindow.setText(ALL_GOOD);
-            return true;
+
+    void interactions()
+    {
+        List<String> lines = Arrays.asList(textAreaInput.getText().split("\\s+"));
+        String command = lines.get(0);
+        ENTRYButton.setEnabled(false);
+
+        if(command.equalsIgnoreCase("CREATEVM")) {
+            String filename = lines.get(1).replace("\"", "");
+            screen.append(command + " ----------------- > " + filename+'\n');
+            System.out.println(filename);
+            Constants.PROCESS_STATUS status = cpu.getJobGorvernor().createVirtualMachine(filename);
+            screen.append(command + " ----------------- > "+status+'\n');
+        }else if(command.equalsIgnoreCase("RUN")) {
+        String filename = lines.get(1).replace("\"", "");
+        screen.append(command + " ----------------- > " + filename+'\n');
+//        Constants.PROCESS_STATUS status = cpu.getProcessForCreatingVM().run(filename);
+//        screen.append(command + " ----------------- > "+status);
+        } else if(command.equalsIgnoreCase("TICKMODE")) {
+            String action = lines.get(1);
+            if(action.equalsIgnoreCase("ON")) {
+                screen.append(command + " ----------------- > " + action+'\n');
+                TickMode = true;
+            }else if(action.equalsIgnoreCase("OFF")) {
+                screen.append(command + " ----------------- > " + action+'\n');
+                TickMode = false;
+            }
+        }else {
+            screen.append("Sorry can not understand you :( ");
         }
+        ENTRYButton.setEnabled(true);
     }
 
-    private boolean checkWordLength(List<String> input) {
-        return input.stream()
-                .filter(a -> a.length() > 6 || a.isEmpty())
-                .collect(toList())
-                .size() != 0;
+    private ActionListener InteractionMode = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+//            new Thread(() -> interactions()).start();
+            new Thread(() -> testInteractions()).start();
+        }
+    };
+
+
+
+//    textAreaInput
+
+    public JTextArea getConsole(){
+        return textAreaInput;
+    }
+
+    public JTextArea getScreen(){
+        return screen;
+    }
+
+    public JButton getInputKey(){
+        return InputKey;
     }
 
     JPanel getRMPanel() {
@@ -114,7 +168,10 @@ public class RMPanel {
     private void checkVisibility() {
         synchronized (visible) {
             try {
-                visible.wait();
+                if (TickMode)
+                {
+                    visible.wait();
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -177,6 +234,13 @@ public class RMPanel {
         checkVisibility();
     }
 
+    public void setActiveProcess(String name) {
+//        setBlack();
+        process.setForeground(Color.GREEN);
+        process.setText(name);
+//        checkVisibility();
+    }
+
     public void setMODERegister(Constants.SYSTEM_MODE MODE) {
         setBlack();
         labelRLMMode.setForeground(Color.RED);
@@ -199,6 +263,8 @@ public class RMPanel {
 
         labelRLMSI.setForeground(Color.BLACK);
         labelRLMMode.setForeground(Color.BLACK);
+
+        tabbedPanel.setSelectedIndex(0);
     }
 
     public void setReady(boolean ready) {

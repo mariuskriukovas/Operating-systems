@@ -13,6 +13,8 @@ public class OSFrame extends JFrame {
     private InternalMemory internalMemory;
     private ExternalMemory externalMemory;
 
+    public static boolean TickMode = false;
+
     public Integer visible = 1;
 
     int f() {
@@ -25,13 +27,13 @@ public class OSFrame extends JFrame {
         setSize(500, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        vmPanel = new VMPanel(cpu, visible);
-        rmPanel = new RMPanel(cpu, visible);
+        vmPanel = new VMPanel(cpu, visible,tabbedPane1);
+        rmPanel = new RMPanel(cpu, visible,tabbedPane1);
         externalMemory = new ExternalMemory(cpu);
         internalMemory = new InternalMemory(cpu);
 
-        tabbedPane1.addTab("VM", vmPanel.getVMPanel());
         tabbedPane1.addTab("RM", rmPanel.getRMPanel());
+        tabbedPane1.addTab("VM", vmPanel.getVMPanel());
         tabbedPane1.addTab("External memory", externalMemory.getExternalMemory());
         tabbedPane1.addTab("Internal memory", internalMemory.getInternalMemory());
         this.add(tabbedPane1);

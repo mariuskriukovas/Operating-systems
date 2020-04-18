@@ -153,12 +153,12 @@
           <text value="Virtual Machine"/>
         </properties>
       </component>
-      <component id="a0f23" class="javax.swing.JButton" binding="INCSIButton" default-binding="true">
+      <component id="a0f23" class="javax.swing.JButton" binding="Tick">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="INC IC"/>
+          <text value="Tick"/>
         </properties>
       </component>
       <component id="ee1a4" class="javax.swing.JLabel" binding="labelVMIC">
@@ -234,12 +234,12 @@
           <text value="c"/>
         </properties>
       </component>
-      <component id="95108" class="javax.swing.JButton" binding="NODEBUGButton" default-binding="true">
+      <component id="95108" class="javax.swing.JButton" binding="Refresh">
         <constraints>
           <grid row="4" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="NO DEBUG"/>
+          <text value="Refresh"/>
         </properties>
       </component>
     </children>

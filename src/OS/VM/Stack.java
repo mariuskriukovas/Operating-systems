@@ -20,7 +20,7 @@ public class Stack {
         //    Word value  ---> RH
         cpu.setRH(new Word(cpu.getRL().getNumber()));
         cpu.setRL(new Word(cpu.getSP().getNumber()));
-        cpu.interrupt().SETSS();
+        cpu.getSwapping().SETSS();
         cpu.increaseSP();
     }
 
@@ -31,8 +31,7 @@ public class Stack {
         //    Word address, ---> RL
         //    RL ---> value
         cpu.setRL(new Word(cpu.getSP().getNumber()));
-        cpu.interrupt().GETSS();
-
+        cpu.getSwapping().GETSS();
 //        cpu.setRL(cpu.getVirtualSSValue());
     }
 }

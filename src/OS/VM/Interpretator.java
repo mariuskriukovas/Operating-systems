@@ -1,6 +1,7 @@
 package OS.VM;
 
 import OS.RM.CPU;
+import OS.Tools.Constants;
 import OS.Tools.Constants.*;
 import OS.Tools.Word;
 
@@ -11,7 +12,7 @@ public class Interpretator
     private final CPU cpu;
     private final Stack stack;
 
-    Interpretator(CPU cpu)
+    public Interpretator(CPU cpu)
     {
         this.cpu = cpu;
         stack = new Stack(cpu);
@@ -46,10 +47,6 @@ public class Interpretator
             JER();
         }else if(command.contains("JE")){
             JE();
-        }else if(command.contains("PUSHAL")){
-            PUSHALL();
-        }else if(command.contains("POPALL")){
-            POPALL();
         }else if(command.contains("PUSH")){
             PUSH();
         }else if(command.contains("POP")){
@@ -170,20 +167,25 @@ public class Interpretator
     {
         System.out.println("CM()");
         try {
-            throw new Exception("not implemented");
-//            Word w1 = stack.getNthElement(0);
-//            Word w2 = stack.getNthElement(1);
-//            if(w1.getNumber() == w2.getNumber())
-//            {
-//                cpu.setC(Constants.C_VALUES.ONE);
-//            } else{
-//                if(w1.getNumber() < w2.getNumber())
-//                {
-//                    cpu.setC(Constants.C_VALUES.ZERO);
-//                }else {
-//                    cpu.setC(Constants.C_VALUES.TWO);
-//                }
-//            }
+            // Stack ---> RL
+            stack.Pop();
+            Word w1 = cpu.getRL().copy();
+
+            // Stack ---> RL
+            stack.Pop();
+            Word w2 = cpu.getRL().copy();
+
+            if(w1.getNumber() == w2.getNumber())
+            {
+                cpu.setC(CONDITIONAL_MODE.EQUAL);
+            } else{
+                if(w1.getNumber() < w2.getNumber())
+                {
+                    cpu.setC(CONDITIONAL_MODE.LESS);
+                }else {
+                    cpu.setC(CONDITIONAL_MODE.MORE);
+                }
+            }
         }catch (Exception e)
         {
             e.printStackTrace();
@@ -200,13 +202,13 @@ public class Interpretator
             Word w2 =  cpu.getRH();
             if(w1.getNumber() == w2.getNumber())
             {
-                cpu.setC(CONDITIONAL_MODE.ONE);
+                cpu.setC(CONDITIONAL_MODE.EQUAL);
             } else{
                 if(w1.getNumber() < w2.getNumber())
                 {
-                    cpu.setC(CONDITIONAL_MODE.ZERO);
+                    cpu.setC(CONDITIONAL_MODE.LESS);
                 }else {
-                    cpu.setC(CONDITIONAL_MODE.TWO);
+                    cpu.setC(CONDITIONAL_MODE.MORE);
                 }
             }
         }catch (Exception e)
@@ -239,7 +241,7 @@ public class Interpretator
     {
         System.out.println("JA()");
         try {
-            if(cpu.getC() == CONDITIONAL_MODE.TWO)
+            if(cpu.getC() == CONDITIONAL_MODE.MORE)
             {
                 JUMP();
             }
@@ -252,7 +254,7 @@ public class Interpretator
     {
         System.out.println("JAR()");
         try {
-            if(cpu.getC() == CONDITIONAL_MODE.TWO)
+            if(cpu.getC() == CONDITIONAL_MODE.MORE)
             {
                 JUMPR();
             }
@@ -265,7 +267,7 @@ public class Interpretator
     {
         System.out.println("JB()");
         try {
-            if(cpu.getC() == CONDITIONAL_MODE.ZERO)
+            if(cpu.getC() == CONDITIONAL_MODE.LESS)
             {
                 JUMP();
             }
@@ -278,7 +280,7 @@ public class Interpretator
     {
         System.out.println("JBR()");
         try {
-            if(cpu.getC() == CONDITIONAL_MODE.ZERO)
+            if(cpu.getC() == CONDITIONAL_MODE.LESS)
             {
                 JUMPR();
             }
@@ -291,7 +293,7 @@ public class Interpretator
     {
         System.out.println("JE()");
         try {
-            if(cpu.getC() == CONDITIONAL_MODE.ONE)
+            if(cpu.getC() == CONDITIONAL_MODE.EQUAL)
             {
                 JUMP();
             }
@@ -304,7 +306,7 @@ public class Interpretator
     {
         System.out.println("JER");
         try {
-            if(cpu.getC() == CONDITIONAL_MODE.ONE)
+            if(cpu.getC() == CONDITIONAL_MODE.EQUAL)
             {
                 JUMPR();
             }
@@ -333,14 +335,7 @@ public class Interpretator
             e.printStackTrace();
         }
     }
-    private void PUSHALL()
-    {
-        System.out.println("PUSHALL()");
-    }
-    private void POPALL()
-    {
-        System.out.println("POPALL()");
-    }
+
     private void SWAP()
     {
         System.out.println("SWAP()");
@@ -359,14 +354,14 @@ public class Interpretator
         //    Word address, ---> RL
         //    RL ---> value
         cpu.setRL(cpu.getIC().copy());
-        cpu.interrupt().GETCS();
+        cpu.getSwapping().GETCS();
         String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
 
         System.out.println("LOADB()");
         try {
             Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
             cpu.setRL(address);
-            cpu.interrupt().GETDS();
+            cpu.getSwapping().GETDS();
             cpu.setC(CONDITIONAL_MODE.ZERO);
         }catch (Exception e) {
             e.printStackTrace();
@@ -381,6 +376,7 @@ public class Interpretator
         cpu.setRL(new Word(value, Word.WORD_TYPE.SYMBOLIC));
         cpu.setC(CONDITIONAL_MODE.ONE);
     }
+
     private void SAVE() throws Exception {
 
         Word value = cpu.getRL().copy();
@@ -388,7 +384,7 @@ public class Interpretator
         //    Word address, ---> RL
         //    RL ---> value
         cpu.setRL(cpu.getIC().copy());
-        cpu.interrupt().GETCS();
+        cpu.getSwapping().GETCS();
         String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
 
         System.out.println("SAVE()");
@@ -399,15 +395,16 @@ public class Interpretator
             //    Word value  ---> RH
             cpu.setRH(value);
             cpu.setRL(address);
-            cpu.interrupt().SETDS();
+            cpu.getSwapping().SETDS();
 
         }catch (Exception e) {
             e.printStackTrace();
         }
     }
     private void GET() throws Exception {
-        //String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
         System.out.println("GET()");
+        //String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
+
         throw new Exception("Not implemented");
     }
     private void PUT() throws Exception {
@@ -415,24 +412,13 @@ public class Interpretator
         //    Word address, ---> RL
         //    RL ---> value
         cpu.setRL(cpu.getIC().copy());
-        cpu.interrupt().GETCS();
+        cpu.getSwapping().GETCS();
         String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
 
         System.out.println("PUT()");
-        try {
-            System.out.println("PUTS values :");
-            for (int i =0; i< 16 ; i++)
-            {
-                Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC).add(i);
-
-                cpu.setRL(address);
-                cpu.interrupt().GETDS();
-                System.out.println(address + " ---> " + cpu.getRL());
-            }
-
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
+        //address --> RL
+        cpu.setRL(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
+        cpu.getPrintLine().print();
     }
     private void HALT() throws Exception {
         System.out.println("HALT()");
@@ -441,10 +427,7 @@ public class Interpretator
 
     private void PRINTR(){
         System.out.println("PRINTR()");
-        System.out.println("RL ---> " + cpu.getRL().toString());
-        System.out.println("RH ---> " + cpu.getRH().toString());
-        System.out.println("RX ---> " + cpu.getRH().toString() + cpu.getRL().toString());
-        System.out.println("C ---> " + cpu.getC().toString());
+        cpu.getPrintLine().printRegisters();
     }
 
 

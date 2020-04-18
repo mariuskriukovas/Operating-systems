@@ -1,8 +1,7 @@
 package OS.RM;
 
 import OS.Interfaces.Memory;
-import OS.RM.Process.Loader;
-import OS.Tools.Constants;
+import OS.RM.Process.*;
 import OS.Tools.Constants.SYSTEM_INTERRUPTION;
 import OS.Tools.Word;
 import UI.OSFrame;
@@ -10,29 +9,23 @@ import UI.RMPanel;
 import UI.VMPanel;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import static OS.Tools.Constants.CODE_SEGMENT;
 import static OS.Tools.Constants.CONDITIONAL_MODE;
-import static OS.Tools.Constants.DATA_SEGMENT;
 import static OS.Tools.Constants.PROGRAM_INTERRUPTION;
-import static OS.Tools.Constants.STACK_SEGMENT;
 import static OS.Tools.Constants.SYSTEM_MODE;
 
 
 public class CPU {
-    //Real Machine part
+
     private CONDITIONAL_MODE C = CONDITIONAL_MODE.NONE;
     private SYSTEM_MODE MODE = SYSTEM_MODE.NONE;
-
-    private final PROGRAM_INTERRUPTION PI = PROGRAM_INTERRUPTION.NONE;
+    private  PROGRAM_INTERRUPTION PI = PROGRAM_INTERRUPTION.NONE;
     private SYSTEM_INTERRUPTION SI = SYSTEM_INTERRUPTION.NONE;
-    private final Integer TI = 0;
+
+    private  Integer TI = 0;
 
     private final Word PTR = new Word(0);
 
-
-    //Virtual Machine Part
     private final Word IC = new Word(0);
     private final Word SP = new Word(0);
 
@@ -55,26 +48,37 @@ public class CPU {
     private final VMPanel VMScreen;
 
     private final Loader loader;
-    private final Interruption interruption;
-    private OSFrame screen;
+    private final Swapping swapping;
+    private final JobGorvernor jobGorvernor;
+    private final PrintLine printLine;
+    private final MainProc mainProc;
 
+
+    private OSFrame screen;
 
     CPU(Memory internal, Memory external) throws Exception {
         this.externalMemory = external;
         this.internalMemory = internal;
         loader = new Loader(this);
-        interruption = new Interruption(this);
+        swapping = new Swapping(this);
 
+        jobGorvernor = new JobGorvernor(this);
         this.screen = new OSFrame(this);
         screen.setVisible(true);
         screen.setReady(true);
         RMScreen = screen.getScreenForRealMachine();
         VMScreen = screen.getScreenForVirtualMachine();
+
+        printLine = new PrintLine(this);
+        mainProc = new MainProc(this);
     }
 
-    public Interruption interrupt() {
-        return interruption;
+
+    public Swapping getSwapping() {
+        return swapping;
     }
+
+    public JobGorvernor getJobGorvernor(){return jobGorvernor;}
 
     private ArrayList<Object> OSStack = new ArrayList<Object>(10);
 
@@ -102,8 +106,9 @@ public class CPU {
 
     //Real Machine parthttps://www.youtube.com/watch?v=aJB6s-IWGH4&fbclid=IwAR3sRvdIWGlZyWjnXsPqn7tr6CbpiSTpR-btr9k9JgXer3YCcmAaViorVdU
 
+// ONLY SETTERS RESPONSIBLE FOR GRAPHICS
+
     public Word getPTR() throws Exception {
-        RMScreen.setPTRRegister(PTR);
         return new Word(PTR.getNumber());
     }
 
@@ -121,57 +126,51 @@ public class CPU {
     }
 
     public Word getDS() throws Exception {
-        switch (MODE) {
-            case SUPERVISOR_MODE:
-                RMScreen.setDSBRegister(DS);
-                return DS;
-            case USER_MODE:
-                RMScreen.setDSBRegister(new Word(DATA_SEGMENT));
-                return new Word(DATA_SEGMENT);
-            default:
-                return new Word(0);
-        }
+        return DS;
+//        switch (MODE) {
+//            case SUPERVISOR_MODE:
+//                return DS;
+//            case USER_MODE:
+//                return new Word(DATA_SEGMENT);
+//            default:
+//                return new Word(0);
+//        }
     }
 
     public Word getSS() throws Exception {
-        switch (MODE) {
-            case SUPERVISOR_MODE:
-                RMScreen.setSSBRegister(SS);
-                return SS;
-            case USER_MODE:
-                RMScreen.setSSBRegister(new Word(STACK_SEGMENT));
-                return new Word(STACK_SEGMENT);
-            default:
-                return new Word(0);
-        }
+        return SS;
+//        switch (MODE) {
+//            case SUPERVISOR_MODE:
+//                return SS;
+//            case USER_MODE:
+//                return new Word(STACK_SEGMENT);
+//            default:
+//                return new Word(0);
+//        }
     }
 
     public Word getCS() throws Exception {
 
-        switch (MODE) {
-            case SUPERVISOR_MODE:
-                RMScreen.setCSBRegister(CS);
-                return CS;
-            case USER_MODE:
-                RMScreen.setCSBRegister(new Word(CODE_SEGMENT));
-                return new Word(CODE_SEGMENT);
-            default:
-                return null;
-        }
+        return CS;
+//        switch (MODE) {
+//            case SUPERVISOR_MODE:
+//                return CS;
+//            case USER_MODE:
+//                return new Word(CODE_SEGMENT);
+//            default:
+//                return null;
+//        }
     }
 
     public Word getSSB() {
-        RMScreen.setSSBRegister(SSB);
         return SSB;
     }
 
     public Word getDSB() {
-        RMScreen.setDSBRegister(DSB);
         return DSB;
     }
 
     public Word getCSB() {
-        RMScreen.setCSBRegister(CSB);
         return CSB;
     }
 
@@ -192,37 +191,57 @@ public class CPU {
 
     public void setDS(Word word) {
         DS.setWord(word);
-        RMScreen.setDSBRegister(DS);
+        VMScreen.setDSRegister(DS);
     }
 
     public void setSS(Word word) {
         SS.setWord(word);
-        RMScreen.setSSBRegister(SS);
+        VMScreen.setSSRegister(SS);
     }
 
     public void setCS(Word word) {
         CS.setWord(word);
-        RMScreen.setCSBRegister(CS);
+        VMScreen.setCSRegister(CS);
     }
 
 
     public SYSTEM_MODE getMODE() {
-        RMScreen.setMODERegister(MODE);
+//        RMScreen.setMODERegister(MODE);
         return MODE;
     }
 
     public int getTI() {
-        RMScreen.setTIRegister(TI);
+//        RMScreen.setTIRegister(TI);
         return TI;
     }
 
+    public void incTI() {
+        TI ++;
+        RMScreen.setTIRegister(TI);
+    }
+
+    public void decTI() {
+        TI --;
+        RMScreen.setTIRegister(TI);
+    }
+
+    public void setTI(int ti) {
+        TI = ti;
+        RMScreen.setTIRegister(TI);
+    }
+
     public PROGRAM_INTERRUPTION getPI() {
-        RMScreen.setPIRegister(PI);
+//        RMScreen.setPIRegister(PI);
         return PI;
     }
 
+    public void setPI(PROGRAM_INTERRUPTION flag) {
+        PI = flag;
+        RMScreen.setPIRegister(PI);
+    }
+
     public SYSTEM_INTERRUPTION getSI() {
-        RMScreen.setSIRegister(SI);
+//        RMScreen.setSIRegister(SI);
         return SI;
     }
 
@@ -234,7 +253,6 @@ public class CPU {
     //Virtual Machine Part
 
     public Word getSP() throws Exception {
-        VMScreen.setStackPointer(SP);
         return SP;
     }
 
@@ -254,7 +272,6 @@ public class CPU {
     }
 
     public Word getRL() {
-        VMScreen.setRLRegister(RL);
         return RL;
     }
 
@@ -274,7 +291,6 @@ public class CPU {
     }
 
     public Word getIC() {
-        VMScreen.setInstructionCounter(IC);
         return IC;
     }
 
@@ -289,7 +305,6 @@ public class CPU {
     }
 
     public CONDITIONAL_MODE getC() {
-        VMScreen.setCRegister(C);
         return C;
     }
 
@@ -316,95 +331,50 @@ public class CPU {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("PPP");
-        int block = address.getBlockFromAddress();
-        System.out.println("PPP2");
-        try {
-            if (block == DS.getBlockFromAddress()) {
-                System.out.println("DS.getBlockFromAddress()");
-                VMScreen.setDataSegment(internalMemory.getBlock(block));
-            }
-            if (block == CS.getBlockFromAddress()) {
-                System.out.println("CS.getBlockFromAddress()");
-                VMScreen.setCodeSegment(internalMemory.getBlock(block));
-            }
-            if (block == SS.getBlockFromAddress()) {
-                System.out.println("SS.getBlockFromAddress()");
-                VMScreen.setStackSegment(internalMemory.getBlock(block));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
+
+
+//    PRIRISTI PRIE SSB DSB IR CSB REGISTRU SETINIMO, TURI TAIP VEIKTI
+
+//        System.out.println("PPP");
+//    int block = address.getBlockFromAddress();
+//        System.out.println("PPP2");
+//        try {
+//        if (block == DS.getBlockFromAddress()) {
+//            System.out.println("DS.getBlockFromAddress()");
+//            VMScreen.setDataSegment(internalMemory.getBlock(block));
+//        }
+//        if (block == CS.getBlockFromAddress()) {
+//            System.out.println("CS.getBlockFromAddress()");
+//            VMScreen.setCodeSegment(internalMemory.getBlock(block));
+//        }
+//        if (block == SS.getBlockFromAddress()) {
+//            System.out.println("SS.getBlockFromAddress()");
+//            VMScreen.setStackSegment(internalMemory.getBlock(block));
+//        }
+//    } catch (Exception e) {
+//        e.printStackTrace();
+//    }
+
 
     public Word getFromInternalMemory(Word address) throws Exception {
         int block = address.getBlockFromAddress();
-        try {
-            if (block == DS.getBlockFromAddress()) VMScreen.setDataSegment(internalMemory.getBlock(block));
-            if (block == CS.getBlockFromAddress()) VMScreen.setCodeSegment(internalMemory.getBlock(block));
-            if (block == SS.getBlockFromAddress()) VMScreen.setStackSegment(internalMemory.getBlock(block));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         return internalMemory.getWord(address);
     }
 
-    //int internalBlockBegin --> RL
-    //int externalBlockBegin --> RH
-
-    public void createMemoryTable() {
-        int internalBlockBegin = (int) RL.getNumber();
-        int externalBlockBegin = (int) RH.getNumber();
-
-        try {
-            setPTR(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin)));
-            for (int i = 0; i < Constants.BLOCK_LENGTH; i++) {
-                setPTRValue(i, new Word(externalMemory.getBlockBeginAddress(externalBlockBegin + i)));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    //  int internalBlockBegin --> RL
-    public void loadVirtualMachineMemory() {
-        int internalBlockBegin = (int) RL.getNumber();
-        try {
-            setPTR(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin)));
-            setSS(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 1)));
-            setDS(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 2)));
-            setCS(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 3)));
-
-            setSSB(new Word(STACK_SEGMENT / 256));
-            setCSB(new Word(CODE_SEGMENT / 256));
-            setDSB(new Word(DATA_SEGMENT / 256));
-
-            //    int fromBlock -->RL
-            //    int toBlock --> RH
-            setRL(new Word(getPTRValue((int) CSB.getNumber()).getBlockFromAddress()));
-            setRH(new Word(getCS().getBlockFromAddress()));
-            loader.loadToInternalMemory();
-
-            setRL(new Word(getPTRValue((int) SSB.getNumber()).getBlockFromAddress()));
-            setRH(new Word(getSS().getBlockFromAddress()));
-            loader.loadToInternalMemory();
-
-            setRL(new Word(getPTRValue((int) DSB.getNumber()).getBlockFromAddress()));
-            setRH(new Word(getDS().getBlockFromAddress()));
-            loader.loadToInternalMemory();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public void setMODE(SYSTEM_MODE flag) {
+        RMScreen.setMODERegister(flag);
         MODE = flag;
     }
 
     public Loader getLoader() {
         return loader;
+    }
+
+    public PrintLine getPrintLine()
+    {
+        return printLine;
     }
 
     public VMPanel getVMScreen() {
@@ -415,35 +385,9 @@ public class CPU {
         return RMScreen;
     }
 
-    public void writeDS(List<String> lines) throws Exception {
-        System.out.println("lines1");
-        setRL(new Word(151));
-        long address = getRL().getNumber();
-        System.out.println("lines2 " + address);
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line.length() != 6) {
-                while (line.length() != 6) {
-                    line = line + " ";
-                }
-            }
-            System.out.println("line " + line);
-            try {
-                System.out.println("before interupt1");
-                setRL(new Word(address + i));
-                System.out.println("before interupt2 " + line);
-                setRH(new Word(line, Word.WORD_TYPE.SYMBOLIC));
-                System.out.println("before interupt");
-                interrupt().SETDS();
-                System.out.println("after interupt");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Finish writing");
-        for (int i = 0; i < lines.size(); i++) {
-            externalMemory.getWord(address + i);
-        }
+
+    public void setActiveProcess(String process){
+        RMScreen.setActiveProcess(process);
     }
 
     public Memory getInternalMemory() {
@@ -454,3 +398,23 @@ public class CPU {
         return externalMemory;
     }
 }
+
+// Procesu matematika
+//
+//• SWAPING atsakingas uz svapingo mechanizmo palaikyma
+
+
+
+// Procesu matematika
+//
+//• StartStop – šakninis procesas, sukuriantis bei naikinantis sisteminius procesus ir resursus.
+//• ReadFromInterface – užduoties nuskaitymo iš įvedimo srauto procesas
+//• JCL – užduoties programos, jos antraštės išskyrimas iš užduoties, ir jų organizavimas kaip resursu
+//• JobToSwap – užduoties patalpinimas išorinėje atmintyje
+//• MainProc – Procesas valdantis JobGorvernor procesus.
+//• JobGorvernor – virtualios mašinos proceso tėvas, tvarkantis virtualios mašinos proceso
+//        darbą
+// • Loader – iš išorinės atminties duomenys perkeliami į vartotojo atmintį
+//• Virtual Machine – procesas atsakantis už vartotojiškos programos vykdymą.
+//• Interrupt – procesas, apdorojantis virtualios mašinos pertraukimą sukėlusią situaciją.
+//• PrintLine – į išvedimo įrenginį pasiunčiama eilutė iš supervizorinės atminties.
