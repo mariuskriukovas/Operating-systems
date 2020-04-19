@@ -73,6 +73,7 @@ public class Word {
     public void setWord(Word word)
     {
         content = word.content;
+        type = word.type;
     }
     public  Word add(int value) throws Exception {
         return new Word(getNumber()+value);
@@ -128,10 +129,18 @@ public class Word {
         }
     }
 
+    public WORD_TYPE getType() {
+        return type;
+    }
+
     public Word copy()
     {
         try {
-            return new Word(getNumber());
+            Word w = new Word(0);
+            w.content = this.content.clone();
+            w.type = this.type;
+            return w;
+//            return new Word(getNumber());
         }catch (Exception e){
             return null;
         }

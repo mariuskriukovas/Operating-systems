@@ -18,6 +18,7 @@ public class PrintLine {
     private final JTextArea inputScreen;
     private final JTextArea outputScreen;
     private final JButton button;
+    private final Boolean waitingForInput = true;
 
     public PrintLine(CPU cpu){
         this.cpu = cpu;
@@ -57,7 +58,23 @@ public class PrintLine {
     //address --> RL
     public void read() {
         button.setVisible(true);
+        synchronized (waitingForInput){
+            try {
+                waitingForInput.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            writeToDataSegment(inputLines, destinationAddress);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+    private List<String> inputLines;
+    private int destinationAddress;
 
     private ActionListener InsertAction = new ActionListener() {
         @Override
@@ -67,8 +84,12 @@ public class PrintLine {
                 System.out.println(lines);
                 try {
                     long address = cpu.getRL().getNumber();
-                    writeToDataSegment(lines, address);
+                    inputLines = lines;
+                    destinationAddress = (int) address;
                     button.setVisible(false);
+                    synchronized (waitingForInput){
+                        waitingForInput.notifyAll();
+                    }
                     System.out.println("DADA");
                 } catch (Exception ex) {
                     System.out.println("LALA");
@@ -112,7 +133,6 @@ public class PrintLine {
     }
 
     private void writeToDataSegment(List<String> lines, long address) throws Exception {
-        System.out.println("lines2 " + address);
 
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
@@ -123,13 +143,12 @@ public class PrintLine {
             }
             System.out.println("line " + line);
             try {
-                System.out.println("before interupt1");
+                Word w = new Word(line, Word.WORD_TYPE.SYMBOLIC);
+                System.out.println(w.getHEXFormat());
+                System.out.println(address);
                 cpu.setRL(new Word(address + i));
-                System.out.println("before interupt2 " + line);
                 cpu.setRH(new Word(line, Word.WORD_TYPE.SYMBOLIC));
-                System.out.println("before interupt");
                 cpu.getSwapping().SETDS();
-                System.out.println("after interupt");
             } catch (Exception e) {
                 e.printStackTrace();
             }

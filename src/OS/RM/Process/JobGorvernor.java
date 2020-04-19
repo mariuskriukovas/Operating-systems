@@ -6,7 +6,9 @@ import OS.Tools.Constants;
 import OS.Tools.Word;
 
 import java.util.*;
+import java.util.concurrent.BlockingDeque;
 
+import static OS.Tools.Constants.*;
 import static OS.Tools.Constants.SYSTEM_MODE.SUPERVISOR_MODE;
 
 public class JobGorvernor {
@@ -18,9 +20,8 @@ public class JobGorvernor {
 
     private final int TIMERTIME = 10;
 
-
     private final Deque<Integer> memoryStack;
-    private final Deque<VirtualMachine> VMStack;
+    private final Deque<String> waitingTasks;
 
 
     public JobGorvernor(CPU cpu){
@@ -32,7 +33,7 @@ public class JobGorvernor {
 
 
         memoryStack = new ArrayDeque<Integer>();
-        VMStack = new ArrayDeque<VirtualMachine>();
+        waitingTasks = new ArrayDeque<String>();
 
         int internalMemoryLength = 16;
         for (int i = 0; i< internalMemoryLength; i = i+4){
@@ -40,17 +41,26 @@ public class JobGorvernor {
         }
     }
 
-//                System.out.println("Bloku pradzia "+"------------------ > "+ pap);
+    //System.out.println("Bloku pradzia "+"------------------ > "+ pap);
 
 
     public Constants.PROCESS_STATUS createVirtualMachine(String fileName) {
-        try {
 
+        if(memoryStack.isEmpty()){
+            waitingTasks.push(fileName);
+        }else {
+            return createProcess(fileName);
+        }
+        return Constants.PROCESS_STATUS.COMPLETED;
+    }
+
+    private Constants.PROCESS_STATUS createProcess(String fileName) {
+        try {
             cpu.setMODE(SUPERVISOR_MODE);
             if(memoryStack.isEmpty())throw new Exception("N0T ENOUGH INTERNALL MEMORY FOR NEW VIRTUAL MACHINE");
             int internalBlockBegin = memoryStack.pop();
 
-//padaryti kad irgi mestu exceptiona
+            //padaryti kad irgi mestu exceptiona
             jobToSwap.uploadTaskToExternalMemory(fileName);
             int externalBlockBegin = jobToSwap.getTaskLocation(fileName);
 
@@ -60,11 +70,10 @@ public class JobGorvernor {
             cpu.getLoader().loadVirtualMachineMemory();
 
             System.out.println("Nuo" + " " + cpu.getPTRValue(0) + " iki " + cpu.getPTRValue(255));
-
-            virtualMachines.put(fileName, new VirtualMachine(fileName, cpu));
+            System.out.println("Internal block begin ----> "+ internalBlockBegin + " externall block begin " + externalBlockBegin);
+            virtualMachines.put(fileName, new VirtualMachine(cpu,internalBlockBegin,externalBlockBegin));
             virtualMachinesMemory.put(fileName,new SaveCPUState());
 
-            VMStack.push(new VirtualMachine(fileName, cpu));
             return Constants.PROCESS_STATUS.COMPLETED;
 
         } catch (Exception e) {
@@ -74,23 +83,7 @@ public class JobGorvernor {
 
     }
 
-//    public Constants.PROCESS_STATUS run(String fileName) {
-//        try {
-//            cpu.setMODE(SUPERVISOR_MODE);
-//            cpu.setTI(12);
-//            VirtualMachine vm =  virtualMachines.get(fileName);
-//            vm.doYourMagic();
-//
-//            return Constants.PROCESS_STATUS.COMPLETED;
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return Constants.PROCESS_STATUS.FAILED;
-//        }
-//    }
-
-
-    public void run(Object key)
+    private void run(Object key)
     {
         try {
             cpu.setMODE(SUPERVISOR_MODE);
@@ -99,11 +92,18 @@ public class JobGorvernor {
                 if(virtualMachinesMemory.get(key).getCPUState())virtualMachinesMemory.get(key).restoreCPUState();
                 cpu.setTI(TIMERTIME);
                 VirtualMachine vm =  virtualMachines.get(key);
+                //  int internalBlockBegin --> RL
+                cpu.setRL(new Word(vm.getInternalBlockBegin()));
+                cpu.getLoader().loadVirtualMachineMemory();
                 vm.doYourMagic();
                 switch (cpu.getSI()){
                     case HALT:
+                        System.out.println("REMOVE  " + key);
                         virtualMachines.remove(key);
                         virtualMachinesMemory.remove(key);
+                        cleanInternalMemory(vm.getInternalBlockBegin());
+                        memoryStack.push(vm.getInternalBlockBegin());
+                        //clean external memory as well
                         break;
                     case TIMER_INTERUPTION:
                         virtualMachinesMemory.get(key).saveCPUState();
@@ -125,15 +125,30 @@ public class JobGorvernor {
                     run(key);
                     saveCPUState.restoreCPUState();
                 }
-                if(virtualMachines.isEmpty())alive = false;
+                if(waitingTasks.size()>0)
+                {
+                    for (int i = 0; i<3; i++)
+                    {
+                        if(waitingTasks.size()>0)
+                        {
+                            createVirtualMachine(waitingTasks.pop());
+                        }
+                    }
+                    return runAll();
+                }
+                if(virtualMachines.isEmpty()){
+                    alive = false;
+                    System.out.println("FALSE");
+                }
             }
             return Constants.PROCESS_STATUS.COMPLETED;
-
         } catch (Exception e) {
             e.printStackTrace();
             return Constants.PROCESS_STATUS.FAILED;
         }
     }
+
+
 
     private void createMemoryTable(int internalBlockBegin, int externalBlockBegin)
     {
@@ -147,6 +162,53 @@ public class JobGorvernor {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void cleanInternalMemory(int internalBlockBegin)
+    {
+        System.out.println("Clean internal memory" + internalBlockBegin );
+        try {
+            int internalCS = cpu.getCS().getBlockFromAddress();
+            int internalDS = cpu.getDS().getBlockFromAddress();
+            int internalSS = cpu.getSS().getBlockFromAddress();
+
+            int csb =  (CODE_SEGMENT / 256) + (int) cpu.getCSB().getNumber();
+            int dsb =  (DATA_SEGMENT / 256) + (int) cpu.getCSB().getNumber();
+            int ssb =  (STACK_SEGMENT / 256) + (int) cpu.getCSB().getNumber();
+
+            csb = cpu.getPTRValue(csb).getBlockFromAddress();
+            dsb = cpu.getPTRValue(dsb).getBlockFromAddress();
+            ssb = cpu.getPTRValue(ssb).getBlockFromAddress();
+
+            System.out.println("CS currentInternalBlock ------------------------- > " + internalCS);
+            System.out.println("CS currentExternalBlock ------------------------- > " + csb);
+            System.out.println("DS currentInternalBlock ------------------------- > " + internalDS);
+            System.out.println("DS currentExternalBlock ------------------------- > " + dsb);
+            System.out.println("SS currentInternalBlock ------------------------- > " + internalSS);
+            System.out.println("SS currentExternalBlock ------------------------- > " + ssb);
+            //reiktu juos dar surasyti i isorine del viso pikto
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        Memory internalMemory = cpu.getInternalMemory();
+        for (int i = 0; i<4; i++ ){
+            Word[] block = new Word[Constants.BLOCK_LENGTH];
+            for (int j = 0; j<Constants.BLOCK_LENGTH; j++)
+            {
+                try {
+                    block[j] = new Word(0);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+            try {
+                internalMemory.setBlock(i+internalBlockBegin, block);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

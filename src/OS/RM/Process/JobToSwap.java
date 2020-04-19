@@ -4,6 +4,8 @@ import OS.RM.CPU;
 import OS.Tools.Constants;
 import OS.Tools.Word;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 
 public class JobToSwap {
@@ -11,11 +13,19 @@ public class JobToSwap {
 
     private final CPU realCPU;
     private final HashMap<String,Integer>taskLocation;
+    private final Deque<Integer> memoryStack;
+
 
     public JobToSwap(CPU realCPU)
     {
         this.realCPU = realCPU;
         taskLocation = new HashMap<String,Integer>(10);
+        memoryStack = new ArrayDeque<Integer>();
+
+        int externalMemoryLength = 65536;
+        for (int i = 0; i< externalMemoryLength; i = i+256){
+            memoryStack.push(i);
+        }
     }
 
 //    STACK_SEGMENT = 0;
@@ -63,7 +73,7 @@ public class JobToSwap {
     //turi iskirti tiek atminties kad pakanktu vienai VM
 
     private int findFreeExternalMemoryBlocks() {
-        return 200;
+        return memoryStack.pop();
     }
 
 

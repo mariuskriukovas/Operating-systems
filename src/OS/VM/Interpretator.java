@@ -362,7 +362,6 @@ public class Interpretator
             Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
             cpu.setRL(address);
             cpu.getSwapping().GETDS();
-            cpu.setC(CONDITIONAL_MODE.ZERO);
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -372,9 +371,8 @@ public class Interpretator
     private void LOADW() throws Exception {
         System.out.println("LOADW()");
         LOADB();
-        String value = cpu.getRL().getHEXFormat();
-        cpu.setRL(new Word(value, Word.WORD_TYPE.SYMBOLIC));
-        cpu.setC(CONDITIONAL_MODE.ONE);
+        String value = cpu.getRL().getASCIIFormat();
+        cpu.setRL(new Word(value, Word.WORD_TYPE.NUMERIC));
     }
 
     private void SAVE() throws Exception {
@@ -404,11 +402,16 @@ public class Interpretator
     private void GET() throws Exception {
         System.out.println("GET()");
         //String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
-
-        throw new Exception("Not implemented");
+        //    Word address, ---> RL
+        //    RL ---> value
+        cpu.setRL(cpu.getIC().copy());
+        cpu.getSwapping().GETCS();
+        String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
+        //address --> RL
+        cpu.setRL(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
+        cpu.getPrintLine().read();
     }
     private void PUT() throws Exception {
-
         //    Word address, ---> RL
         //    RL ---> value
         cpu.setRL(cpu.getIC().copy());
@@ -418,7 +421,7 @@ public class Interpretator
         System.out.println("PUT()");
         //address --> RL
         cpu.setRL(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
-        cpu.getPrintLine().print();
+        cpu.getPrintLine().read();
     }
     private void HALT() throws Exception {
         System.out.println("HALT()");

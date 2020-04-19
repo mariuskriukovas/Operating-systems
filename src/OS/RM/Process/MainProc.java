@@ -29,23 +29,28 @@ public class MainProc {
     private ActionListener InteractionMode = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-//            new Thread(() -> interactions()).start();
-            new Thread(() -> testInteractions()).start();
+            new Thread(() -> interactions()).start();
         }
     };
 
-    void testInteractions(){
-        cpu.getJobGorvernor().createVirtualMachine( "prog.txt");
+    //            new Thread(() -> testInteractions()).start();
+//    void testInteractions(){
+//        CREATEVM "prog3.txt"
+//        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
+//        TickMode = true;
 //        cpu.getJobGorvernor().createVirtualMachine( "prog2.txt");
 //        cpu.getJobGorvernor().createVirtualMachine( "prog3.txt");
-        cpu.getJobGorvernor().runAll();
+//        cpu.getJobGorvernor().createVirtualMachine( "prog4.txt");
+//        cpu.getJobGorvernor().createVirtualMachine( "prog5.txt");
+//        RUNALL
+//        cpu.getJobGorvernor().runAll();
 //        cpu.getPrintLine().read();
-    }
+//    }
 
     //su tuo TICK negerai
     void interactions()
     {
-        List<String> lines = Arrays.asList(outputScreen.getText().split("\\s+"));
+        List<String> lines = Arrays.asList(inputScreen.getText().split("\\s+"));
         String command = lines.get(0);
         button.setEnabled(false);
 
@@ -55,11 +60,9 @@ public class MainProc {
             System.out.println(filename);
             Constants.PROCESS_STATUS status = cpu.getJobGorvernor().createVirtualMachine(filename);
             outputScreen.append(command + " ----------------- > "+status+'\n');
-        }else if(command.equalsIgnoreCase("RUN")) {
-            String filename = lines.get(1).replace("\"", "");
-            outputScreen.append(command + " ----------------- > " + filename+'\n');
-//        Constants.PROCESS_STATUS status = cpu.getProcessForCreatingVM().run(filename);
-//        screen.append(command + " ----------------- > "+status);
+        }else if(command.equalsIgnoreCase("RUNALL")) {
+            Constants.PROCESS_STATUS status = cpu.getJobGorvernor().runAll();
+            outputScreen.append(command + " ----------------- > "+status);
         } else if(command.equalsIgnoreCase("TICKMODE")) {
             String action = lines.get(1);
             if(action.equalsIgnoreCase("ON")) {
@@ -70,7 +73,7 @@ public class MainProc {
                 TickMode = false;
             }
         }else {
-            outputScreen.append("Sorry can not understand you :( ");
+            outputScreen.append("Sorry can not understand you :( "+'\n');
         }
         button.setEnabled(true);
     }

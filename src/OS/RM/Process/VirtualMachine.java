@@ -17,13 +17,15 @@ public class VirtualMachine {
 
     private CPU cpu = null;
     private Interpretator interpretator;
-    private final String processID;
 
-    private OSFrame screen;
+    private final int internalBlockBegin;
+    private final int externalBlockBegin;
 
-    public VirtualMachine(String ID, CPU cpu)
+
+    public VirtualMachine(CPU cpu, int internalBlockBegin, int externalBlockBegin)
     {
-        processID = ID;
+        this.internalBlockBegin  = internalBlockBegin;
+        this.externalBlockBegin = externalBlockBegin;
         try {
             this.cpu = cpu;
             interpretator = new Interpretator(cpu);
@@ -56,5 +58,13 @@ public class VirtualMachine {
         {
              e.printStackTrace();
         }
+    }
+
+    public int getExternalBlockBegin() {
+        return externalBlockBegin;
+    }
+
+    public int getInternalBlockBegin() {
+        return internalBlockBegin;
     }
 }

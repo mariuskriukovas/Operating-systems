@@ -83,14 +83,14 @@ public class RMPanel {
             }
     };
 
-    //RUN "prog.txt"
-    //CREATEVM "prog.txt"
+    //RUN "prog1.txt"
+    //CREATEVM "prog1.txt"
     //TICKMODE ON
     //TICKMODE OFF
 
 
     void testInteractions(){
-//        cpu.getJobGorvernor().createVirtualMachine( "prog.txt");
+//        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
 //        cpu.getJobGorvernor().createVirtualMachine( "prog2.txt");
 //        cpu.getJobGorvernor().createVirtualMachine( "prog3.txt");
 //        cpu.getJobGorvernor().runAll();

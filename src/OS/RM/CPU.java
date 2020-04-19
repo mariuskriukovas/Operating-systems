@@ -84,8 +84,8 @@ public class CPU {
 
     public void saveRegisterState() {
         try {
-            OSStack.add(new Word(getRH().getNumber()));
-            OSStack.add(new Word(getRL().getNumber()));
+            OSStack.add(getRH().copy());
+            OSStack.add(getRL().copy());
             OSStack.add(getSI());
             OSStack.add(getMODE());
         } catch (Exception e) {
@@ -332,29 +332,6 @@ public class CPU {
             e.printStackTrace();
         }
     }
-
-
-//    PRIRISTI PRIE SSB DSB IR CSB REGISTRU SETINIMO, TURI TAIP VEIKTI
-
-//        System.out.println("PPP");
-//    int block = address.getBlockFromAddress();
-//        System.out.println("PPP2");
-//        try {
-//        if (block == DS.getBlockFromAddress()) {
-//            System.out.println("DS.getBlockFromAddress()");
-//            VMScreen.setDataSegment(internalMemory.getBlock(block));
-//        }
-//        if (block == CS.getBlockFromAddress()) {
-//            System.out.println("CS.getBlockFromAddress()");
-//            VMScreen.setCodeSegment(internalMemory.getBlock(block));
-//        }
-//        if (block == SS.getBlockFromAddress()) {
-//            System.out.println("SS.getBlockFromAddress()");
-//            VMScreen.setStackSegment(internalMemory.getBlock(block));
-//        }
-//    } catch (Exception e) {
-//        e.printStackTrace();
-//    }
 
 
     public Word getFromInternalMemory(Word address) throws Exception {

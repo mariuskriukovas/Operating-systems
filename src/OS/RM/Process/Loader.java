@@ -67,6 +67,7 @@ public class Loader {
 
         int internalBlockBegin = (int) cpu.getRL().getNumber();
         try {
+            cpu.setPTR(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 0)));
             cpu.setSS(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 1)));
             cpu.setDS(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 2)));
             cpu.setCS(new Word(internalMemory.getBlockBeginAddress(internalBlockBegin + 3)));

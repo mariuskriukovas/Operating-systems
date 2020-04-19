@@ -175,8 +175,8 @@ public class VMPanel {
     }
 
     private void setCodeSegment(Word[] arr) throws Exception {
-        List<String> str = Arrays.stream(arr).map(x -> x.getASCIIFormat()).collect(Collectors.toList());
-        listCodeSegment.setListData(str.toArray());
+//        List<String> str = Arrays.stream(arr).map(x -> x.getASCIIFormat()).collect(Collectors.toList());
+        listCodeSegment.setListData(arr);
         scrollRMCS.setViewportView(listCodeSegment);
     }
 
