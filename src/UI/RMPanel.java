@@ -63,6 +63,7 @@ public class RMPanel {
 
         TickButton.addActionListener(TickAction);
         TickButton.addKeyListener(enterListener);
+        screen.setEditable(false);
     }
 
 
