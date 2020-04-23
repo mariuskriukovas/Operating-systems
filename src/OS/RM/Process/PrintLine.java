@@ -14,6 +14,7 @@ import static java.util.stream.Collectors.toList;
 
 public class PrintLine {
 
+    public static final int MULTIPLE = 1;
     private final CPU cpu;
     private final JTextArea inputScreen;
     private final JTextArea outputScreen;
@@ -110,7 +111,7 @@ public class PrintLine {
             System.out.println(NO_INPUT);
             outputScreen.append(command + " ----------------- > " + NO_INPUT +'\n');
             return false;
-        } else if (input.size() % 16 != 0) { // not multiple of 16
+        } else if (input.size() % MULTIPLE != 0) { // not multiple of 16
             System.out.println(NOT_MULTIPLE_OF_16);
             outputScreen.append(command + " ----------------- > " + NOT_MULTIPLE_OF_16 +'\n');
             return false;
@@ -119,7 +120,7 @@ public class PrintLine {
             outputScreen.append(command + " ----------------- > " + WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1 +'\n');
             return false;
         } else {
-            System.out.println(ALL_GOOD); //ALL GOOD BITCH
+            System.out.println(ALL_GOOD);
             outputScreen.append(command + " ----------------- > " + ALL_GOOD +'\n');
             return true;
         }
