@@ -10,6 +10,7 @@ import static OS.Tools.Word.WORD_TYPE.SYMBOLIC;
 public class Word {
 
     public static final String EMPTY = "";
+    public static final String SPACE = " ";
 
     public enum WORD_TYPE
     {
@@ -102,6 +103,21 @@ public class Word {
         {
             String hex = Integer.toHexString(A);
             result +=hex;
+        }
+        return result;
+    };
+
+    public String getTableHEXFormat() {
+        String result = EMPTY;
+        for (int A : content)
+        {
+            String hex;
+            if (SYMBOLIC.equals(this.type)) {
+                hex = Integer.toHexString(0x100 | A).substring(1);
+            } else {
+               hex = Integer.toHexString(A);
+            }
+            result = result + hex + SPACE;
         }
         return result;
     };
