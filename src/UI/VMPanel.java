@@ -8,10 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import static UI.OSFrame.TickMode;
 
@@ -58,13 +56,13 @@ public class VMPanel {
 
     private CPU cpu;
 
-    VMPanel(CPU cpu, Integer visible,JTabbedPane tabbedPanel) {
+    VMPanel(CPU cpu, Integer visible, JTabbedPane tabbedPanel) {
 
         Refresh.setEnabled(false);
         Tick.setEnabled(false);
         this.visible = visible;
         this.cpu = cpu;
-        this.tabbedPanel=tabbedPanel;
+        this.tabbedPanel = tabbedPanel;
 
         Tick.addActionListener(new ActionListener() {
             @Override
@@ -88,14 +86,24 @@ public class VMPanel {
                     setDataSegment(cpu.getInternalMemory().getBlock(cpu.getDS().getBlockFromAddress()));
                     setCodeSegment(cpu.getInternalMemory().getBlock(cpu.getCS().getBlockFromAddress()));
                     setStackSegment(cpu.getInternalMemory().getBlock(cpu.getSS().getBlockFromAddress()));
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
 
+        Tick.addKeyListener(enterListener);
     }
 
+    private KeyAdapter enterListener = new KeyAdapter() {
+        @Override
+        public void keyTyped(KeyEvent keyEvent) {
+            if (keyEvent.getKeyChar() == '\n') {
+                System.out.println("ENTER PRESSED VM");
+                //Listener
+            }
+        }
+    };
 
     JPanel getVMPanel() {
         return this.VMPanel;
@@ -206,8 +214,7 @@ public class VMPanel {
     private void checkVisibility() {
         synchronized (visible) {
             try {
-                if (TickMode)
-                {
+                if (TickMode) {
                     visible.wait();
                 }
             } catch (InterruptedException e) {

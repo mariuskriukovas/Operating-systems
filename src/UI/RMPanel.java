@@ -9,11 +9,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.List;
 
 import static UI.OSFrame.TickMode;
-import static java.util.stream.Collectors.toList;
 
 public class RMPanel {
     private JLabel labelRMC;
@@ -55,12 +56,13 @@ public class RMPanel {
     RMPanel(CPU cpu, Integer visible, JTabbedPane tabbedPanel) {
         this.cpu = cpu;
         this.visible = visible;
-        this.tabbedPanel=tabbedPanel;
+        this.tabbedPanel = tabbedPanel;
         inputScroll.setViewportView(textAreaInput);
         ENTRYButton.setEnabled(false);
         InputKey.setVisible(false);
 
         TickButton.addActionListener(TickAction);
+        TickButton.addKeyListener(enterListener);
     }
 
 
@@ -68,19 +70,29 @@ public class RMPanel {
         return ENTRYButton;
     }
 
-    private ActionListener TickAction = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                try {
-                    synchronized (RMPanel.this.visible) {
-                        RMPanel.this.visible.notify();
-                    }
-
-                    System.out.println("Tick");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+    KeyAdapter enterListener = new KeyAdapter() {
+        @Override
+        public void keyTyped(KeyEvent keyEvent) {
+            if (keyEvent.getKeyChar() == '\n') {
+                System.out.println("ENTER PRESSED RM");
+                //Listener
             }
+        }
+    };
+
+    private ActionListener TickAction = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            try {
+                synchronized (RMPanel.this.visible) {
+                    RMPanel.this.visible.notify();
+                }
+
+                System.out.println("Tick");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     };
 
     //RUN "prog1.txt"
@@ -89,7 +101,7 @@ public class RMPanel {
     //TICKMODE OFF
 
 
-    void testInteractions(){
+    void testInteractions() {
 //        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
 //        cpu.getJobGorvernor().createVirtualMachine( "prog2.txt");
 //        cpu.getJobGorvernor().createVirtualMachine( "prog3.txt");
@@ -98,33 +110,32 @@ public class RMPanel {
     }
 
 
-    void interactions()
-    {
+    void interactions() {
         List<String> lines = Arrays.asList(textAreaInput.getText().split("\\s+"));
         String command = lines.get(0);
         ENTRYButton.setEnabled(false);
 
-        if(command.equalsIgnoreCase("CREATEVM")) {
+        if (command.equalsIgnoreCase("CREATEVM")) {
             String filename = lines.get(1).replace("\"", "");
-            screen.append(command + " ----------------- > " + filename+'\n');
+            screen.append(command + " ----------------- > " + filename + '\n');
             System.out.println(filename);
             Constants.PROCESS_STATUS status = cpu.getJobGorvernor().createVirtualMachine(filename);
-            screen.append(command + " ----------------- > "+status+'\n');
-        }else if(command.equalsIgnoreCase("RUN")) {
-        String filename = lines.get(1).replace("\"", "");
-        screen.append(command + " ----------------- > " + filename+'\n');
+            screen.append(command + " ----------------- > " + status + '\n');
+        } else if (command.equalsIgnoreCase("RUN")) {
+            String filename = lines.get(1).replace("\"", "");
+            screen.append(command + " ----------------- > " + filename + '\n');
 //        Constants.PROCESS_STATUS status = cpu.getProcessForCreatingVM().run(filename);
 //        screen.append(command + " ----------------- > "+status);
-        } else if(command.equalsIgnoreCase("TICKMODE")) {
+        } else if (command.equalsIgnoreCase("TICKMODE")) {
             String action = lines.get(1);
-            if(action.equalsIgnoreCase("ON")) {
-                screen.append(command + " ----------------- > " + action+'\n');
+            if (action.equalsIgnoreCase("ON")) {
+                screen.append(command + " ----------------- > " + action + '\n');
                 TickMode = true;
-            }else if(action.equalsIgnoreCase("OFF")) {
-                screen.append(command + " ----------------- > " + action+'\n');
+            } else if (action.equalsIgnoreCase("OFF")) {
+                screen.append(command + " ----------------- > " + action + '\n');
                 TickMode = false;
             }
-        }else {
+        } else {
             screen.append("Sorry can not understand you :( ");
         }
         ENTRYButton.setEnabled(true);
@@ -139,18 +150,17 @@ public class RMPanel {
     };
 
 
-
 //    textAreaInput
 
-    public JTextArea getConsole(){
+    public JTextArea getConsole() {
         return textAreaInput;
     }
 
-    public JTextArea getScreen(){
+    public JTextArea getScreen() {
         return screen;
     }
 
-    public JButton getInputKey(){
+    public JButton getInputKey() {
         return InputKey;
     }
 
@@ -168,8 +178,7 @@ public class RMPanel {
     private void checkVisibility() {
         synchronized (visible) {
             try {
-                if (TickMode)
-                {
+                if (TickMode) {
                     visible.wait();
                 }
             } catch (InterruptedException e) {
