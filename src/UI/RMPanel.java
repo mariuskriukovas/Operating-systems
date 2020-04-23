@@ -24,7 +24,6 @@ public class RMPanel {
     private JLabel labelRMCS;
     private JTextArea textAreaInput;
     private JLabel labelRMSS;
-    private JLabel labelRMPI;
     private JLabel labelRLMDSB;
     private JLabel labelRLMCSB;
     private JLabel labelRLMTI;
