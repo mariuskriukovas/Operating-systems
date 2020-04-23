@@ -15,6 +15,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
 public class InternalMemory {
+    public static final String SPACE = " ";
     private JPanel internalMemory;
     private JButton enterInput;
     private JTextField blockNumberInput;
@@ -43,7 +44,7 @@ public class InternalMemory {
 
     public void setTable(int blockNumber) throws Exception {
         Word[] content = cpu.getInternalMemory().getBlock(blockNumber);
-        List<String> values = stream(content).map(Word::getHEXFormat).collect(toList());
+        List<String> values = stream(content).map(Word::getTableHEXFormat).collect(toList());
         Object[] columnNames = new Object[6];
         String[][] tableOfValues = new String[256][6];
         for (int i = 1; i < 7; i++) {
@@ -51,12 +52,10 @@ public class InternalMemory {
         }
         for (int i = 0; i < values.size(); i++) {
             String value = values.get(i);
-            String[] word = value.split("").clone();
+            String[] word = value.split(SPACE).clone();
             tableOfValues[i] = copyOfRange(word, 0, 6);
         }
         DefaultTableModel model = new DefaultTableModel(tableOfValues, columnNames);
-        System.out.println(tableOfValues.toString());
-        System.out.println(columnNames.toString());
         block.setModel(model);
         block.setFillsViewportHeight(true);
         blockScroll.setViewportView(block);
