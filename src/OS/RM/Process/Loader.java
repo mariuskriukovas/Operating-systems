@@ -19,6 +19,7 @@ public class Loader {
 //    int toBlock --> RH
     public void loadToInternalMemory()
     {
+        cpu.showProcess(PROCESS.Loader);
         int fromBlock  = (int) cpu.getRL().getNumber();
         int toBlock  = (int) cpu.getRH().getNumber();
 
@@ -36,6 +37,7 @@ public class Loader {
                 e.printStackTrace();
             }
         }
+        cpu.showPreviousProcess();
     }
 
     //int fromBlock -->RL
@@ -43,6 +45,7 @@ public class Loader {
 
     public void loadToExternalMemory()
     {
+        cpu.showProcess(PROCESS.Loader);
         int fromBlock  = (int) cpu.getRL().getNumber();
         int toBlock  = (int) cpu.getRH().getNumber();
 
@@ -58,11 +61,12 @@ public class Loader {
                 e.printStackTrace();
             }
         }
+        cpu.showPreviousProcess();
     }
 
     //  int internalBlockBegin --> RL
     public void loadVirtualMachineMemory() {
-
+        cpu.showProcess(PROCESS.Loader);
         Memory internalMemory = cpu.getInternalMemory();
 
         int internalBlockBegin = (int) cpu.getRL().getNumber();
@@ -93,8 +97,7 @@ public class Loader {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        cpu.showPreviousProcess();
     }
-
-
 
 }

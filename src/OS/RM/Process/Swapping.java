@@ -1,6 +1,7 @@
 package OS.RM.Process;
 
 import OS.RM.CPU;
+import OS.Tools.Constants;
 import OS.Tools.Word;
 
 import static OS.Tools.Constants.CODE_SEGMENT;
@@ -28,7 +29,7 @@ public class Swapping {
     //    Word address, ---> RL
     //    Word value  ---> RH
     public void SETCS() {
-        cpu.setMODE(SUPERVISOR_MODE);
+        cpu.showProcess(Constants.PROCESS.Swapping);
 
         Word address = cpu.getRL().copy();
         Word value = cpu.getRH().copy();
@@ -53,13 +54,14 @@ public class Swapping {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        cpu.setMODE(USER_MODE);
+        cpu.showPreviousProcess();
     }
 
     //    Word address, ---> RL
     //    Word value  ---> RH
     public void SETDS() {
-        cpu.setMODE(SUPERVISOR_MODE);
+        cpu.showProcess(Constants.PROCESS.Swapping);
+
         Word address = cpu.getRL().copy();
         Word value = cpu.getRH().copy();
 
@@ -84,14 +86,14 @@ public class Swapping {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        cpu.setMODE(USER_MODE);
+        cpu.showPreviousProcess();
     }
 
     //    Word address, ---> RL
     //    Word value  ---> RH
     public void SETSS() {
+        cpu.showProcess(Constants.PROCESS.Swapping);
 
-        cpu.setMODE(SUPERVISOR_MODE);
         Word address = cpu.getRL().copy();
         Word value = cpu.getRH().copy();
 
@@ -115,14 +117,16 @@ public class Swapping {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        cpu.setMODE(USER_MODE);
+
+        cpu.showPreviousProcess();
     }
 
     //    Word address, ---> RL
     //    RL ---> value
 
     public void GETCS() {
-        cpu.setMODE(SUPERVISOR_MODE);
+        cpu.showProcess(Constants.PROCESS.Swapping);
+
         Word address = cpu.getRL().copy();
         int word = address.getWordFromAddress();
         int block = address.getBlockFromAddress();
@@ -143,14 +147,15 @@ public class Swapping {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        cpu.setMODE(USER_MODE);
+        cpu.showPreviousProcess();
     }
 
     //    Word address, ---> RL
     //    RL ---> value
 
     public void GETSS() {
-        cpu.setMODE(SUPERVISOR_MODE);
+        cpu.showProcess(Constants.PROCESS.Swapping);
+
         Word address = cpu.getRL().copy();
         int word = address.getWordFromAddress();
         int block = address.getBlockFromAddress();
@@ -171,14 +176,15 @@ public class Swapping {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        cpu.setMODE(USER_MODE);
+        cpu.showPreviousProcess();
     }
 
     //    Word address, ---> RL
     //    RL ---> value
 
     public void GETDS() {
-        cpu.setMODE(SUPERVISOR_MODE);
+        cpu.showProcess(Constants.PROCESS.Swapping);
+
         Word address = cpu.getRL().copy();
         int word = address.getWordFromAddress();
         int block = address.getBlockFromAddress();
@@ -201,7 +207,7 @@ public class Swapping {
             e.printStackTrace();
         }
 
-        cpu.setMODE(USER_MODE);
+        cpu.showPreviousProcess();
     }
 
 

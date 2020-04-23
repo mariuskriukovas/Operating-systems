@@ -11,14 +11,14 @@ import java.util.HashMap;
 public class JobToSwap {
     //JobToSwap – užduoties patalpinimas išorinėje atmintyje
 
-    private final CPU realCPU;
+    private final CPU cpu;
     private final HashMap<String,Integer>taskLocation;
     private final Deque<Integer> memoryStack;
 
 
-    public JobToSwap(CPU realCPU)
+    public JobToSwap(CPU cpu)
     {
-        this.realCPU = realCPU;
+        this.cpu = cpu;
         taskLocation = new HashMap<String,Integer>(10);
         memoryStack = new ArrayDeque<Integer>();
 
@@ -33,34 +33,36 @@ public class JobToSwap {
 //    CODE_SEGMENT = 43520; AA00
 
     public void uploadTaskToExternalMemory(String task){
+        cpu.showProcess(Constants.PROCESS.JobToSwap);
         Parser parser = new Parser(task);
         int externalMemoryBegin =  findFreeExternalMemoryBlocks();
         int dataSegBegin = Constants.DATA_SEGMENT + (externalMemoryBegin*256);
         int codeSegBegin = Constants.CODE_SEGMENT + (externalMemoryBegin*256);
 
-        for(Parser.Command c : parser.getCodeSegmentC())
+        for(Parser.Command c : parser.getCodeSegment())
         {
             int adr = c.getPosition() + codeSegBegin;
             try {
 //                System.out.println(new Word(adr).getHEXFormat());
-                realCPU.writeToExternalMemory(new Word(adr), new Word(c.getValue(), Word.WORD_TYPE.SYMBOLIC));
+                cpu.writeToExternalMemory(new Word(adr), new Word(c.getValue(), Word.WORD_TYPE.SYMBOLIC));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        for(Parser.Command c : parser.getDataSegmentC())
+        for(Parser.Command c : parser.getDataSegment())
         {
             int adr = c.getPosition() + dataSegBegin;
             try {
 //                System.out.println(new Word(adr).getHEXFormat());
-                realCPU.writeToExternalMemory(new Word(adr), new Word(c.getValue(), Word.WORD_TYPE.NUMERIC));
+                cpu.writeToExternalMemory(new Word(adr), new Word(c.getValue(), Word.WORD_TYPE.NUMERIC));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         taskLocation.put(task,externalMemoryBegin);
+        cpu.showPreviousProcess();
     }
 
     public int getTaskLocation(String taskID)

@@ -12,12 +12,22 @@ public class Constants {
 
     public static final long MAX_NUMBER = 16777215;
 
+    public enum PROCESS
+    {
+        NONE,
+        JobGorvernor,
+        MainProcess,
+        JobToSwap,
+        Loader,
+        Parser,
+        Print,
+        Swapping,
+        VirtualMachine,
+    }
+
     public enum CONDITIONAL_MODE
     {
         NONE,
-        ZERO,
-        ONE,
-        TWO,
         MORE,
         EQUAL,
         LESS,
@@ -38,12 +48,12 @@ public class Constants {
         FAILED,
     }
 
-    public enum PROGRAM_INTERRUPTION
-    {
-        NONE,
-        COMPLETED,
-        TIMER_INTERUPTION,
-    }
+//    public enum PROGRAM_INTERRUPTION
+//    {
+//        NONE,
+//        COMPLETED,
+//        TIMER_INTERUPTION,
+//    }
 
     public enum SYSTEM_INTERRUPTION
     {
@@ -52,6 +62,9 @@ public class Constants {
         LOADED_WRONG_SS_BLOCK,
         LOADED_WRONG_DS_BLOCK,
         LOADED_WRONG_CS_BLOCK,
+        LOADED_WRONG_ADDRESS,
+        DIVISION_BY_ZERO,
+        SOMETHING_IS_WRONG,
         HALT,
     }
 

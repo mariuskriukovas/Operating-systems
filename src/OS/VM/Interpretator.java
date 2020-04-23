@@ -11,14 +11,17 @@ public class Interpretator
 {
     private final CPU cpu;
     private final Stack stack;
+    private final String name;
 
-    public Interpretator(CPU cpu)
+    public Interpretator(CPU cpu, String name)
     {
+        this.name = name;
         this.cpu = cpu;
         stack = new Stack(cpu);
     }
 
     public void execute(String command) throws Exception {
+        cpu.showProcess(name);
         if(command.contains("ADD")) {
             ADD();
         }else if(command.contains("SUB")){
@@ -70,6 +73,7 @@ public class Interpretator
         }else {
             System.out.print("Not found");
         }
+        cpu.showPreviousProcess();
     }
 
     private void ADD()
@@ -88,10 +92,10 @@ public class Interpretator
                 cpu.setRL(new Word(rl));
                 long rh = (result /manyF);
                 cpu.setRH(new Word(rh));
-                cpu.setC(CONDITIONAL_MODE.ONE);
+                cpu.setC(CONDITIONAL_MODE.MORE);
             } else {
                 cpu.setRL(new Word(result));
-                cpu.setC(CONDITIONAL_MODE.ZERO);
+                cpu.setC(CONDITIONAL_MODE.LESS);
             }
         }catch (Exception e)
         {
@@ -133,10 +137,10 @@ public class Interpretator
                 cpu.setRL(new Word(rl));
                 long rh = Long.parseLong(result.divide(manyF).toString());
                 cpu.setRH(new Word(rh));
-                cpu.setC(CONDITIONAL_MODE.ONE);
+                cpu.setC(CONDITIONAL_MODE.MORE);
             } else {
                 cpu.setRL(new Word(Long.parseLong(result.toString())));
-                cpu.setC(CONDITIONAL_MODE.ZERO);
+                cpu.setC(CONDITIONAL_MODE.LESS);
             }
         }catch (Exception e)
         {
@@ -154,8 +158,6 @@ public class Interpretator
             if(op2 == 0)throw new Exception("Division by zero");
             long div = op1 / op2;
             long mod = op1 % op2;
-            if(mod==0)cpu.setC(CONDITIONAL_MODE.ZERO);
-            else cpu.setC(CONDITIONAL_MODE.ONE);
             cpu.setRL(new Word(div));
             cpu.setRH(new Word(mod));
         }catch (Exception e)
@@ -365,7 +367,7 @@ public class Interpretator
         }catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("PO LOAD --------> "+ cpu.getRL().getHEXFormat());
+//        System.out.println("PO LOAD --------> "+ cpu.getRL().getHEXFormat());
     }
     //    RL ---> value
     private void LOADW() throws Exception {
@@ -421,7 +423,7 @@ public class Interpretator
         System.out.println("PUT()");
         //address --> RL
         cpu.setRL(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
-        cpu.getPrintLine().read();
+        cpu.getPrintLine().print();
     }
     private void HALT() throws Exception {
         System.out.println("HALT()");

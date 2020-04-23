@@ -14,8 +14,6 @@ public class Stack {
 
     //    RL ---> Stack
     public void Push() throws Exception {
-
-        System.out.println("Rl ---------------------> " + cpu.getRL());
         //    Word address, ---> RL
         //    Word value  ---> RH
         cpu.setRH(new Word(cpu.getRL().getNumber()));

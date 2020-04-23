@@ -2,24 +2,27 @@ package OS.RM;
 
 import OS.Interfaces.Memory;
 import OS.RM.Process.*;
+import OS.Tools.Constants;
 import OS.Tools.Constants.SYSTEM_INTERRUPTION;
 import OS.Tools.Word;
 import UI.OSFrame;
 import UI.RMPanel;
 import UI.VMPanel;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
 
 import static OS.Tools.Constants.CONDITIONAL_MODE;
-import static OS.Tools.Constants.PROGRAM_INTERRUPTION;
 import static OS.Tools.Constants.SYSTEM_MODE;
 
 
 public class CPU {
 
     private CONDITIONAL_MODE C = CONDITIONAL_MODE.NONE;
-    private SYSTEM_MODE MODE = SYSTEM_MODE.NONE;
-    private  PROGRAM_INTERRUPTION PI = PROGRAM_INTERRUPTION.NONE;
+    private SYSTEM_MODE MODE = SYSTEM_MODE.SUPERVISOR_MODE;
+//    private  PROGRAM_INTERRUPTION PI = PROGRAM_INTERRUPTION.NONE;
     private SYSTEM_INTERRUPTION SI = SYSTEM_INTERRUPTION.NONE;
 
     private  Integer TI = 0;
@@ -71,6 +74,8 @@ public class CPU {
 
         printLine = new PrintLine(this);
         mainProc = new MainProc(this);
+
+        process.push(Constants.PROCESS.MainProcess);
     }
 
 
@@ -230,15 +235,15 @@ public class CPU {
         RMScreen.setTIRegister(TI);
     }
 
-    public PROGRAM_INTERRUPTION getPI() {
+//    public PROGRAM_INTERRUPTION getPI() {
+////        RMScreen.setPIRegister(PI);
+//        return PI;
+//    }
+//
+//    public void setPI(PROGRAM_INTERRUPTION flag) {
+//        PI = flag;
 //        RMScreen.setPIRegister(PI);
-        return PI;
-    }
-
-    public void setPI(PROGRAM_INTERRUPTION flag) {
-        PI = flag;
-        RMScreen.setPIRegister(PI);
-    }
+//    }
 
     public SYSTEM_INTERRUPTION getSI() {
 //        RMScreen.setSIRegister(SI);
@@ -345,6 +350,38 @@ public class CPU {
         MODE = flag;
     }
 
+    private final Deque<Object> process = new ArrayDeque<Object>();
+
+    private void checkProcess(Object flag){
+        boolean isSystemProcess = Arrays.stream(Constants.PROCESS.values()).anyMatch(x->x == flag);
+//        System.out.println(flag +" "+  isSystemProcess + " "+ process.size());
+        if(MODE!=SYSTEM_MODE.SUPERVISOR_MODE)
+        {
+            if(isSystemProcess){
+                setMODE(SYSTEM_MODE.SUPERVISOR_MODE);
+            }
+        }else {
+            if(!isSystemProcess){
+                setMODE(SYSTEM_MODE.USER_MODE);
+            }
+        }
+    }
+
+    public void showProcess(Object flag) {
+        checkProcess(flag);
+        process.push(flag);
+        RMScreen.setActiveProcess(flag.toString());
+    }
+
+    public void showPreviousProcess() {
+        process.pop();
+        Object flag = process.getFirst();
+        checkProcess(flag);
+        RMScreen.setActiveProcess(flag.toString());
+    }
+
+
+
     public Loader getLoader() {
         return loader;
     }
@@ -377,7 +414,6 @@ public class CPU {
 }
 
 // Procesu matematika
-//
 //• SWAPING atsakingas uz svapingo mechanizmo palaikyma
 
 

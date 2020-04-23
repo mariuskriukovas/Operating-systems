@@ -74,8 +74,14 @@ public class RMPanel {
         @Override
         public void keyTyped(KeyEvent keyEvent) {
             if (keyEvent.getKeyChar() == '\n') {
-                System.out.println("ENTER PRESSED RM");
-                //Listener
+                try {
+                    synchronized (RMPanel.this.visible) {
+                        RMPanel.this.visible.notify();
+                    }
+                    System.out.println("Tick");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     };
@@ -87,70 +93,12 @@ public class RMPanel {
                 synchronized (RMPanel.this.visible) {
                     RMPanel.this.visible.notify();
                 }
-
                 System.out.println("Tick");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     };
-
-    //RUN "prog1.txt"
-    //CREATEVM "prog1.txt"
-    //TICKMODE ON
-    //TICKMODE OFF
-
-
-    void testInteractions() {
-//        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
-//        cpu.getJobGorvernor().createVirtualMachine( "prog2.txt");
-//        cpu.getJobGorvernor().createVirtualMachine( "prog3.txt");
-//        cpu.getJobGorvernor().runAll();
-        cpu.getPrintLine().read();
-    }
-
-
-    void interactions() {
-        List<String> lines = Arrays.asList(textAreaInput.getText().split("\\s+"));
-        String command = lines.get(0);
-        ENTRYButton.setEnabled(false);
-
-        if (command.equalsIgnoreCase("CREATEVM")) {
-            String filename = lines.get(1).replace("\"", "");
-            screen.append(command + " ----------------- > " + filename + '\n');
-            System.out.println(filename);
-            Constants.PROCESS_STATUS status = cpu.getJobGorvernor().createVirtualMachine(filename);
-            screen.append(command + " ----------------- > " + status + '\n');
-        } else if (command.equalsIgnoreCase("RUN")) {
-            String filename = lines.get(1).replace("\"", "");
-            screen.append(command + " ----------------- > " + filename + '\n');
-//        Constants.PROCESS_STATUS status = cpu.getProcessForCreatingVM().run(filename);
-//        screen.append(command + " ----------------- > "+status);
-        } else if (command.equalsIgnoreCase("TICKMODE")) {
-            String action = lines.get(1);
-            if (action.equalsIgnoreCase("ON")) {
-                screen.append(command + " ----------------- > " + action + '\n');
-                TickMode = true;
-            } else if (action.equalsIgnoreCase("OFF")) {
-                screen.append(command + " ----------------- > " + action + '\n');
-                TickMode = false;
-            }
-        } else {
-            screen.append("Sorry can not understand you :( ");
-        }
-        ENTRYButton.setEnabled(true);
-    }
-
-    private ActionListener InteractionMode = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-//            new Thread(() -> interactions()).start();
-            new Thread(() -> testInteractions()).start();
-        }
-    };
-
-
-//    textAreaInput
 
     public JTextArea getConsole() {
         return textAreaInput;
@@ -236,16 +184,15 @@ public class RMPanel {
         checkVisibility();
     }
 
-    public void setPIRegister(Constants.PROGRAM_INTERRUPTION PI) {
-        setBlack();
-        labelRLMPI.setForeground(Color.RED);
-        labelRLMPI.setText(PI.toString());
-        checkVisibility();
-    }
+//    public void setPIRegister(Constants.PROGRAM_INTERRUPTION PI) {
+//        setBlack();
+//        labelRLMPI.setForeground(Color.RED);
+//        labelRLMPI.setText(PI.toString());
+//        checkVisibility();
+//    }
 
     public void setActiveProcess(String name) {
-//        setBlack();
-        process.setForeground(Color.GREEN);
+        process.setForeground(Color.BLUE);
         process.setText(name);
 //        checkVisibility();
     }

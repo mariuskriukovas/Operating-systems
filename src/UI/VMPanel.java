@@ -99,8 +99,14 @@ public class VMPanel {
         @Override
         public void keyTyped(KeyEvent keyEvent) {
             if (keyEvent.getKeyChar() == '\n') {
-                System.out.println("ENTER PRESSED VM");
-                //Listener
+                try {
+                    synchronized (VMPanel.this.visible) {
+                        VMPanel.this.visible.notify();
+                    }
+                    System.out.println("Tick");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     };

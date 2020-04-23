@@ -22,14 +22,13 @@ public class VirtualMachine {
     private final int externalBlockBegin;
 
 
-    public VirtualMachine(CPU cpu, int internalBlockBegin, int externalBlockBegin)
+    public VirtualMachine(CPU cpu, int internalBlockBegin, int externalBlockBegin, String name)
     {
         this.internalBlockBegin  = internalBlockBegin;
         this.externalBlockBegin = externalBlockBegin;
         try {
             this.cpu = cpu;
-            interpretator = new Interpretator(cpu);
-
+            interpretator = new Interpretator(cpu, name);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -37,18 +36,19 @@ public class VirtualMachine {
 
 
     public void doYourMagic(){
-        cpu.setMODE(USER_MODE);
+        cpu.showProcess(Constants.PROCESS.VirtualMachine);
         try{
             while (!cpu.getSI().equals(SYSTEM_INTERRUPTION.HALT)) {
                 if (cpu.getTI()==0){
                     cpu.setSI(SYSTEM_INTERRUPTION.TIMER_INTERUPTION);
+                    cpu.showPreviousProcess();
                     return;
                 }
                 cpu.saveRegisterState();
                     cpu.setRL(cpu.getIC().copy());
                     cpu.getSwapping().GETCS();
                     String command = cpu.getRL().getASCIIFormat();
-                    System.out.println(" ---------------  > "+command);
+//                    System.out.println(" ---------------  > "+command);
                 cpu.restoreRegisterState();
                 interpretator.execute(command);
                 cpu.increaseIC();
@@ -58,6 +58,7 @@ public class VirtualMachine {
         {
              e.printStackTrace();
         }
+        cpu.showPreviousProcess();
     }
 
     public int getExternalBlockBegin() {

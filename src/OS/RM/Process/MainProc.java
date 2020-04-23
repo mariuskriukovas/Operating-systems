@@ -29,27 +29,32 @@ public class MainProc {
     private ActionListener InteractionMode = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
+//            new Thread(() -> testInteractions()).start();
             new Thread(() -> interactions()).start();
         }
     };
 
-    //            new Thread(() -> testInteractions()).start();
+////            new Thread(() -> testInteractions()).start();
 //    void testInteractions(){
-//        CREATEVM "prog3.txt"
+////        CREATEVM "prog3.txt"
+////        TickMode = true;
 //        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
-//        TickMode = true;
-//        cpu.getJobGorvernor().createVirtualMachine( "prog2.txt");
-//        cpu.getJobGorvernor().createVirtualMachine( "prog3.txt");
-//        cpu.getJobGorvernor().createVirtualMachine( "prog4.txt");
-//        cpu.getJobGorvernor().createVirtualMachine( "prog5.txt");
-//        RUNALL
+////        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
+////        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
+////        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
+////        cpu.getJobGorvernor().createVirtualMachine( "prog2.txt");
+////        cpu.getJobGorvernor().createVirtualMachine( "prog3.txt");
+////        cpu.getJobGorvernor().createVirtualMachine( "prog4.txt");
+////        cpu.getJobGorvernor().createVirtualMachine( "prog5.txt");
+//////        RUNALL
 //        cpu.getJobGorvernor().runAll();
-//        cpu.getPrintLine().read();
+////        cpu.getPrintLine().read();
 //    }
 
     //su tuo TICK negerai
     void interactions()
     {
+        cpu.showProcess(Constants.PROCESS.MainProcess);
         List<String> lines = Arrays.asList(inputScreen.getText().split("\\s+"));
         String command = lines.get(0);
         button.setEnabled(false);
@@ -76,6 +81,7 @@ public class MainProc {
             outputScreen.append("Sorry can not understand you :( "+'\n');
         }
         button.setEnabled(true);
+        cpu.showPreviousProcess();
     }
 
 }

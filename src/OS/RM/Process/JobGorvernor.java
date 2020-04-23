@@ -45,12 +45,19 @@ public class JobGorvernor {
 
 
     public Constants.PROCESS_STATUS createVirtualMachine(String fileName) {
-
+        cpu.showProcess(PROCESS.JobGorvernor);
+        if(waitingTasks.contains(fileName))
+        {
+            cpu.showPreviousProcess();
+            return PROCESS_STATUS.FAILED;
+        }
         if(memoryStack.isEmpty()){
             waitingTasks.push(fileName);
         }else {
+            cpu.showPreviousProcess();
             return createProcess(fileName);
         }
+        cpu.showPreviousProcess();
         return Constants.PROCESS_STATUS.COMPLETED;
     }
 
@@ -71,7 +78,7 @@ public class JobGorvernor {
 
             System.out.println("Nuo" + " " + cpu.getPTRValue(0) + " iki " + cpu.getPTRValue(255));
             System.out.println("Internal block begin ----> "+ internalBlockBegin + " externall block begin " + externalBlockBegin);
-            virtualMachines.put(fileName, new VirtualMachine(cpu,internalBlockBegin,externalBlockBegin));
+            virtualMachines.put(fileName, new VirtualMachine(cpu,internalBlockBegin,externalBlockBegin,fileName));
             virtualMachinesMemory.put(fileName,new SaveCPUState());
 
             return Constants.PROCESS_STATUS.COMPLETED;
@@ -116,6 +123,7 @@ public class JobGorvernor {
     }
 
     public Constants.PROCESS_STATUS runAll() {
+        cpu.showProcess(PROCESS.JobGorvernor);
         try {
             boolean alive = true;
             while (alive) {
@@ -141,9 +149,11 @@ public class JobGorvernor {
                     System.out.println("FALSE");
                 }
             }
+            cpu.showPreviousProcess();
             return Constants.PROCESS_STATUS.COMPLETED;
         } catch (Exception e) {
             e.printStackTrace();
+            cpu.showPreviousProcess();
             return Constants.PROCESS_STATUS.FAILED;
         }
     }
@@ -188,13 +198,25 @@ public class JobGorvernor {
             System.out.println("SS currentInternalBlock ------------------------- > " + internalSS);
             System.out.println("SS currentExternalBlock ------------------------- > " + ssb);
             //reiktu juos dar surasyti i isorine del viso pikto
+
+            cpu.setRL(new Word(internalCS));
+            cpu.setRH(new Word(csb));
+            cpu.getLoader().loadToExternalMemory();
+
+            cpu.setRL(new Word(internalDS));
+            cpu.setRH(new Word(dsb));
+            cpu.getLoader().loadToExternalMemory();
+
+            cpu.setRL(new Word(internalSS));
+            cpu.setRH(new Word(ssb));
+            cpu.getLoader().loadToExternalMemory();
         }catch (Exception e)
         {
             e.printStackTrace();
         }
 
         Memory internalMemory = cpu.getInternalMemory();
-        for (int i = 0; i<4; i++ ){
+        for (int i = 0; i<4; i++ ) {
             Word[] block = new Word[Constants.BLOCK_LENGTH];
             for (int j = 0; j<Constants.BLOCK_LENGTH; j++)
             {

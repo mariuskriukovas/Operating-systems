@@ -1,6 +1,7 @@
 package OS.RM.Process;
 
 import OS.RM.CPU;
+import OS.Tools.Constants;
 import OS.Tools.Word;
 import UI.RMPanel;
 
@@ -30,6 +31,7 @@ public class PrintLine {
 
     //address --> RL
     public void print() {
+        cpu.showProcess(Constants.PROCESS.Print);
         String command  = "PRINT";
         long address = cpu.getRL().getNumber();
         for (int i = 0; i<16; i++){
@@ -44,19 +46,23 @@ public class PrintLine {
                 e.printStackTrace();
             }
         }
+        cpu.showPreviousProcess();
     }
 
 
     public void printRegisters() {
+        cpu.showProcess(Constants.PROCESS.Print);
         String command  = "PRINT ";
         outputScreen.append("RL ---> " +  cpu.getRL().toString() +'\n');
         outputScreen.append("RH ---> " +  cpu.getRH().toString() +'\n');
         outputScreen.append("C --->  " + cpu.getC().toString() +'\n');
+        cpu.showPreviousProcess();
     }
 
 
     //address --> RL
     public void read() {
+        cpu.showProcess(Constants.PROCESS.Print);
         button.setVisible(true);
         synchronized (waitingForInput){
             try {
@@ -71,6 +77,7 @@ public class PrintLine {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        cpu.showPreviousProcess();
     }
 
     private List<String> inputLines;
@@ -155,6 +162,4 @@ public class PrintLine {
         }
         System.out.println("Finish writing");
     }
-
-
 }
