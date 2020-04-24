@@ -51,7 +51,7 @@ public class Parser {
         int address = 0;
         for (int i = codeSegmentIndex + 1; i < fileContent.size(); i++) {
             String parsed = checkCommand(fileContent.get(i));
-//            System.out.println(address+" : "+parsed);
+            System.out.println(address+" : "+parsed);
             codeSegment.add(new Command(address, parsed));
             address++;
         }

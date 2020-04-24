@@ -48,7 +48,7 @@ public class VirtualMachine {
                     cpu.setRL(cpu.getIC().copy());
                     cpu.getSwapping().GETCS();
                     String command = cpu.getRL().getASCIIFormat();
-//                    System.out.println(" ---------------  > "+command);
+                    System.out.println(" ---------------  > "+command);
                 cpu.restoreRegisterState();
                 interpretator.execute(command);
                 cpu.increaseIC();

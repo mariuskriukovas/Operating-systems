@@ -6,6 +6,7 @@ import OS.Tools.Constants.*;
 import OS.Tools.Word;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 
 public class Interpretator
 {
@@ -76,13 +77,37 @@ public class Interpretator
         cpu.showPreviousProcess();
     }
 
+    private ArrayList<Object> OSStack = new ArrayList<Object>(10);
+
+    public void saveRegisterState() {
+        try {
+            OSStack.add(cpu.getRH().copy());
+            OSStack.add(cpu.getRL().copy());
+            OSStack.add(cpu.getSI());
+            OSStack.add(cpu.getMODE());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void restoreRegisterState() {
+        try {
+            cpu.setMODE((SYSTEM_MODE) OSStack.remove(OSStack.size() - 1));
+            cpu.setSI((SYSTEM_INTERRUPTION) OSStack.remove(OSStack.size() - 1));
+            cpu.setRL((Word) OSStack.remove(OSStack.size() - 1));
+            cpu.setRH((Word) OSStack.remove(OSStack.size() - 1));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void ADD()
     {
         System.out.println("ADD()");
         try {
-            stack.Pop();
+            POP();
             long op1 = cpu.getRL().getNumber();
-            stack.Pop();
+            POP();
             long op2 = cpu.getRL().getNumber();
             long result = op1 + op2;
             long manyF = Long.parseLong("ffffff",16);
@@ -106,9 +131,9 @@ public class Interpretator
     {
         System.out.println("SUB()");
         try {
-            stack.Pop();
+            POP();
             long op1 = cpu.getRL().getNumber();
-            stack.Pop();
+            POP();
             long op2 = cpu.getRL().getNumber();
             long result = op1 - op2;
             cpu.setRL(new Word(result));
@@ -121,9 +146,9 @@ public class Interpretator
     {
         System.out.println("MUL()");
         try {
-            stack.Pop();
+            POP();
             long op1 = cpu.getRL().getNumber();
-            stack.Pop();
+            POP();
             long op2 = cpu.getRL().getNumber();
             BigInteger op1Big = new BigInteger(Long.toString(op1));
             BigInteger op2Big = new BigInteger(Long.toString(op2));
@@ -151,9 +176,9 @@ public class Interpretator
     {
         System.out.println("DIV()");
         try {
-            stack.Pop();
+            POP();
             long op1 = cpu.getRL().getNumber();
-            stack.Pop();
+            POP();
             long op2 = cpu.getRL().getNumber();
             if(op2 == 0)throw new Exception("Division by zero");
             long div = op1 / op2;
@@ -170,11 +195,11 @@ public class Interpretator
         System.out.println("CM()");
         try {
             // Stack ---> RL
-            stack.Pop();
+            POP();
             Word w1 = cpu.getRL().copy();
 
             // Stack ---> RL
-            stack.Pop();
+            POP();
             Word w2 = cpu.getRL().copy();
 
             if(w1.getNumber() == w2.getNumber())
@@ -218,16 +243,32 @@ public class Interpretator
             e.printStackTrace();
         }
     }
+
     private void JUMP()
     {
         System.out.println("JUMP()");
         try {
-            stack.Pop();
+            POP();
             cpu.setIC(cpu.getRL());
         }catch (Exception e)
         {
             e.printStackTrace();
         }
+    }
+    private void JUMPA()
+    {
+        saveRegisterState();
+            cpu.setRL(cpu.getIC().copy());
+            cpu.getSwapping().GETCS();
+            String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
+            System.out.println("JUMP()");
+            try {
+                cpu.setIC(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
+            }catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        restoreRegisterState();
     }
     private void JUMPR()
     {
@@ -245,7 +286,7 @@ public class Interpretator
         try {
             if(cpu.getC() == CONDITIONAL_MODE.MORE)
             {
-                JUMP();
+                JUMPA();
             }
         }catch (Exception e)
         {
@@ -271,7 +312,7 @@ public class Interpretator
         try {
             if(cpu.getC() == CONDITIONAL_MODE.LESS)
             {
-                JUMP();
+                JUMPA();
             }
         }catch (Exception e)
         {
@@ -293,11 +334,12 @@ public class Interpretator
     }
     private void JE()
     {
+
         System.out.println("JE()");
         try {
             if(cpu.getC() == CONDITIONAL_MODE.EQUAL)
             {
-                JUMP();
+                JUMPA();
             }
         }catch (Exception e)
         {
@@ -319,6 +361,7 @@ public class Interpretator
     }
     private void PUSH()
     {
+        saveRegisterState();
         System.out.println("PUSH()");
         try {
             stack.Push();
@@ -326,16 +369,22 @@ public class Interpretator
         {
             e.printStackTrace();
         }
+        restoreRegisterState();
     }
     private void POP()
     {
+        saveRegisterState();
+        Word value = null;
         System.out.println("POP()");
         try {
             stack.Pop();
+            value = cpu.getRL().copy();
         }catch (Exception e)
         {
             e.printStackTrace();
         }
+        restoreRegisterState();
+        cpu.setRL(value);
     }
 
     private void SWAP()
@@ -352,22 +401,26 @@ public class Interpretator
 
     //    RL ---> value
     private void LOADB() throws Exception {
+        cpu.saveRegisterState();
+            Word value = null;
+            //    Word address, ---> RL
+            //    RL ---> value
+            cpu.setRL(cpu.getIC().copy());
+            cpu.getSwapping().GETCS();
+            String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
 
-        //    Word address, ---> RL
-        //    RL ---> value
-        cpu.setRL(cpu.getIC().copy());
-        cpu.getSwapping().GETCS();
-        String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
-
-        System.out.println("LOADB()");
-        try {
-            Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
-            cpu.setRL(address);
-            cpu.getSwapping().GETDS();
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-//        System.out.println("PO LOAD --------> "+ cpu.getRL().getHEXFormat());
+            System.out.println("LOADB()");
+            try {
+                Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+                cpu.setRL(address);
+                cpu.getSwapping().GETDS();
+                value = cpu.getRL().copy();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+            //System.out.println("PO LOAD --------> "+ cpu.getRL().getHEXFormat());
+        cpu.restoreRegisterState();
+            cpu.setRL(value.copy());
     }
     //    RL ---> value
     private void LOADW() throws Exception {
@@ -378,52 +431,57 @@ public class Interpretator
     }
 
     private void SAVE() throws Exception {
-
-        Word value = cpu.getRL().copy();
-
-        //    Word address, ---> RL
-        //    RL ---> value
-        cpu.setRL(cpu.getIC().copy());
-        cpu.getSwapping().GETCS();
-        String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
-
-        System.out.println("SAVE()");
-        try {
-            Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+        cpu.saveRegisterState();
+            Word value = cpu.getRL().copy();
 
             //    Word address, ---> RL
-            //    Word value  ---> RH
-            cpu.setRH(value);
-            cpu.setRL(address);
-            cpu.getSwapping().SETDS();
+            //    RL ---> value
+            cpu.setRL(cpu.getIC().copy());
+            cpu.getSwapping().GETCS();
+            String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
 
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
+            System.out.println("SAVE()");
+            try {
+                Word address = new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+
+                //    Word address, ---> RL
+                //    Word value  ---> RH
+                cpu.setRH(value);
+                cpu.setRL(address);
+                cpu.getSwapping().SETDS();
+
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+        cpu.restoreRegisterState();
     }
     private void GET() throws Exception {
-        System.out.println("GET()");
-        //String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
-        //    Word address, ---> RL
-        //    RL ---> value
-        cpu.setRL(cpu.getIC().copy());
-        cpu.getSwapping().GETCS();
-        String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
-        //address --> RL
-        cpu.setRL(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
-        cpu.getPrintLine().read();
+        cpu.saveRegisterState();
+            System.out.println("GET()");
+            //String virtualAddress = cpu.getCSValue(cpu.getIC()).getASCIIFormat().substring(2);
+            //    Word address, ---> RL
+            //    RL ---> value
+            cpu.setRL(cpu.getIC().copy());
+            cpu.getSwapping().GETCS();
+            String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
+            //address --> RL
+            cpu.setRL(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
+            cpu.getPrintLine().read();
+        cpu.restoreRegisterState();
     }
     private void PUT() throws Exception {
-        //    Word address, ---> RL
-        //    RL ---> value
-        cpu.setRL(cpu.getIC().copy());
-        cpu.getSwapping().GETCS();
-        String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
+        cpu.saveRegisterState();
+            //    Word address, ---> RL
+            //    RL ---> value
+            cpu.setRL(cpu.getIC().copy());
+            cpu.getSwapping().GETCS();
+            String virtualAddress = cpu.getRL().getASCIIFormat().substring(2);
 
-        System.out.println("PUT()");
-        //address --> RL
-        cpu.setRL(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
-        cpu.getPrintLine().print();
+            System.out.println("PUT()");
+            //address --> RL
+            cpu.setRL(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
+            cpu.getPrintLine().print();
+        cpu.restoreRegisterState();
     }
     private void HALT() throws Exception {
         System.out.println("HALT()");

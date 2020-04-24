@@ -151,11 +151,12 @@ public class PrintLine {
             }
             System.out.println("line " + line);
             try {
-                Word w = new Word(line, Word.WORD_TYPE.SYMBOLIC);
-                System.out.println(w.getHEXFormat());
-                System.out.println(address);
+//                Word w = new Word(line, Word.WORD_TYPE.SYMBOLIC);
+//                System.out.println(w.getHEXFormat());
+//                System.out.println(address);
+                int value = Integer.parseInt(line.replaceAll("\\s+",""),16);
                 cpu.setRL(new Word(address + i));
-                cpu.setRH(new Word(line, Word.WORD_TYPE.SYMBOLIC));
+                cpu.setRH(new Word(value));
                 cpu.getSwapping().SETDS();
             } catch (Exception e) {
                 e.printStackTrace();

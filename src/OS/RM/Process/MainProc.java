@@ -37,8 +37,8 @@ public class MainProc {
 ////            new Thread(() -> testInteractions()).start();
 //    void testInteractions(){
 ////        CREATEVM "prog3.txt"
-////        TickMode = true;
 //        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
+////        TickMode = true;
 ////        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
 ////        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");
 ////        cpu.getJobGorvernor().createVirtualMachine( "prog1.txt");

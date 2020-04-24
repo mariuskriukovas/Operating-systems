@@ -18,7 +18,7 @@ public class JobGorvernor {
     private final HashMap<String,SaveCPUState> virtualMachinesMemory;
     private final SaveCPUState saveCPUState;
 
-    private final int TIMERTIME = 10;
+    private final int TIMERTIME = 1000;
 
     private final Deque<Integer> memoryStack;
     private final Deque<String> waitingTasks;

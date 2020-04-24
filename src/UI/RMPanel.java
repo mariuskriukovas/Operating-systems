@@ -213,7 +213,7 @@ public class RMPanel {
         labelRLMCSB.setForeground(Color.BLACK);
         labelRLMTI.setForeground(Color.BLACK);
         labelRLMC.setForeground(Color.BLACK);
-        labelRLMPI.setForeground(Color.BLACK);
+//        labelRLMPI.setForeground(Color.BLACK);
         labelRLMSSB.setForeground(Color.BLACK);
         labelRLMPTR.setForeground(Color.BLACK);
 
