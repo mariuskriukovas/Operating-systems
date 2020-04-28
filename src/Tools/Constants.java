@@ -1,0 +1,71 @@
+package Tools;
+
+public class Constants {
+    public static final int WORD_LENGTH = 4;
+    public static final int BLOCK_LENGTH = 256;
+    public static final int BLOCK_NUMBER = 256;
+    public static final int WORD_NUMBER = 65535;
+
+    public static final int STACK_SEGMENT = 0;
+    public static final int DATA_SEGMENT = 21760;
+    public static final int CODE_SEGMENT = 43520;
+
+    public static final long MAX_NUMBER = 16777215;
+
+    public enum SYSTEM_INTERRUPTION
+    {
+        NONE,
+        TIMER_INTERUPTION,
+        HALT,
+    }
+
+    public enum PROGRAM_INTERRUPTION
+    {
+        NONE,
+        WRONG_SP,
+        NEGATIVE_SP,
+        WRONG_IC,
+        WRONG_SS_BLOCK_ADDRESS,
+        WRONG_DS_BLOCK_ADDRESS,
+        WRONG_CS_BLOCK_ADDRESS,
+        DIVISION_BY_ZERO,
+        SOMETHING_IS_WRONG,
+    }
+
+    public enum PROCESS
+    {
+        NONE,
+        JobGorvernor,
+        MainProcess,
+        JobToSwap,
+        Loader,
+        Parser,
+        Print,
+        Swapping,
+        VirtualMachine,
+    }
+
+    public enum CONDITIONAL_MODE
+    {
+        NONE,
+        MORE,
+        EQUAL,
+        LESS,
+    }
+
+
+    public enum SYSTEM_MODE
+    {
+        NONE,
+        USER_MODE,
+        SUPERVISOR_MODE,
+    }
+
+    public enum PROCESS_STATUS
+    {
+        COMPLETED,
+        STILL_IN_PROCESS,
+        FAILED,
+    }
+
+}
