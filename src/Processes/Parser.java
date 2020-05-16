@@ -1,19 +1,38 @@
 package Processes;
 
+import Components.Memory;
+import Resources.Resource;
+import Resources.ResourceDistributor;
+import Resources.ResourceEnum;
+import Tools.SupervisorMemory;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Parser {
+import static Processes.ProcessEnum.Name.PARSER;
+import static Resources.ResourceEnum.Name.*;
+import static Tools.Constants.*;
+import static Tools.Constants.ANSI_RESET;
+
+public class Parser extends ProcessInterface {
 
     private final int COMMAND_LENGTH = 6;
 
     private final ArrayList<Command> dataSegment;
     private final ArrayList<Command> codeSegment;
 
-    public Parser(){
+    public Parser(ProcessInterface father, ProcessPlaner processPlaner,  ResourceDistributor resourceDistributor){
+
+        super(father, ProcessEnum.State.BLOCKED,  ProcessEnum.PARSER_PRIORITY, PARSER,processPlaner, resourceDistributor);
+
+
+        new Resource(this, ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY, ResourceEnum.Type.DYNAMIC);
+
+
         dataSegment = new ArrayList<Command>(100);
         codeSegment = new ArrayList<Command>(100);
+
     }
 
     public void parseFile(String fileLocation) {
@@ -89,4 +108,78 @@ public class Parser {
     public ArrayList<Command> getDataSegment() {
         return dataSegment;
     }
+
+    private int IC = 0;
+
+    @Override
+    public void executeTask() {
+        super.executeTask();
+
+        switch (IC)
+        {
+            case 0:
+                IC++;
+                //Blokavimasis laukiant “Užduotis supervizorinėje atmintyje” resurso
+                resourceDistributor.ask(TASK_IN_SUPERVISOR_MEMORY,this);
+                break;
+            case 1:
+                IC++;
+                //Nuskaitomas resurso pranesime nurodytas failas.
+                SupervisorMemory supervisorMemory = (SupervisorMemory) resourceDistributor.get(SUPERVISOR_MEMORY);
+                Memory externalMemory = (Memory) resourceDistributor.get(EXTERNAL_MEMORY);
+                try {
+                    System.out.println(ANSI_BLUE + " ---------------> " + supervisorMemory.getFileList().get(0) + ANSI_RESET);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                //Ar failas turi antrastę DATSEG ?
+                boolean isDataSegGood = true;
+
+                if(isDataSegGood) {
+                    //taip
+                    //Supervizorinėje atmintyje išsaugomas užduoties duomenų segentas.
+
+                    boolean isCodeSegGood = true;
+                    if(isCodeSegGood)
+                    {
+                        IC = 0;
+                        //Supervizorinėje atmintyje išsaugomas užduoties kodo segentas.
+
+                        //Atlaisvinamas “Užduoties vykdymo parametrai supervizorinėje atmintyje” resursas.
+                        resourceDistributor.disengage(ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY);
+                    }
+                    else {
+                        IC = 0;
+                        //Atlaisvinamas  "Užduotis įvykdyta"  resursas su pranešimu " Nekorektiškas užduoties failas"
+                        resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  " Nekorektiškas užduoties failas");
+                    }
+                }else {
+                    IC = 0;
+                    //Atlaisvinamas  "Užduotis įvykdyta"  resursas su pranešimu " Nekorektiškas užduoties failas"
+                    resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  " Nekorektiškas užduoties failas");
+                }
+                break;
+        }
+    }
 }
+
+// switch (IC)
+//        {
+//            case 0:
+//                IC++;
+//
+//                break;
+//            case 1:
+//                IC++;
+//
+//
+//                break;
+//            case 2:
+//
+//                break;
+//            case 3:
+//
+//
+//                break;
+//        }

@@ -3,24 +3,41 @@ package Processes;
 import Components.CPU;
 import Components.Memory;
 import RealMachine.RealMachine;
+import Resources.Resource;
+import Resources.ResourceDistributor;
+import Resources.ResourceEnum;
 import Tools.Constants;
 import Tools.Word;
 
+import static Processes.ProcessEnum.Name.LOADER;
+import static Resources.ResourceEnum.Name.LOADING_PACKAGE;
 import static Tools.Constants.*;
 
-public class Loader {
+public class Loader extends ProcessInterface {
 
     private final RealMachine realMachine;
     private final CPU cpu;
     private final Memory internalMemory;
     private final Memory externalMemory;
 
-    public Loader(RealMachine realMachine)
+    public Loader(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor)
     {
-       this.realMachine = realMachine;
+        super(father, ProcessEnum.State.BLOCKED, ProcessEnum.LOADER_PRIORITY, LOADER,processPlaner, resourceDistributor);
+        this.realMachine = father;
        cpu = realMachine.getCpu();
        internalMemory = realMachine.getInternalMemory();
        externalMemory = realMachine.getExternalMemory();
+
+        new Resource(this, LOADING_PACKAGE, ResourceEnum.Type.DYNAMIC);
+
+    }
+
+
+    @Override
+    public void executeTask() {
+        super.executeTask();
+
+        resourceDistributor.ask(LOADING_PACKAGE,this);
     }
 
     public void createMemoryTable(int internalBlockBegin, int externalBlockBegin)
@@ -159,7 +176,8 @@ public class Loader {
 
     }
 
-    //  SS ----- > internalMemory
+//    [PTR * 100 + DS(55)] = e*100
+//      SS ----- > internalMemory
     public void uploadSSBlock(){
         try {
             Word[] ss = externalMemory.getBlock((int) cpu.getSS().getNumber());

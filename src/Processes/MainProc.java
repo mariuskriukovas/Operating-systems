@@ -1,82 +1,56 @@
 package Processes;
 
-import Components.CPU;
-import Components.UI.OSFrame;
 import RealMachine.RealMachine;
-import Tools.Constants;
+import Resources.Resource;
+import Resources.ResourceDistributor;
+import Resources.ResourceEnum;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Arrays;
-import java.util.List;
+import static Processes.ProcessEnum.MAIN_PROC_PRIORITY;
+import static Processes.ProcessEnum.Name.MAIN_PROC;
+import static Tools.Constants.ANSI_BLACK;
+import static Tools.Constants.ANSI_BLUE;
 
-public class MainProc {
-    private final RealMachine realMachine;
-    private final CPU cpu;
-    private final JTextArea inputScreen;
-    private final JTextArea outputScreen;
-    private final JButton button;
+public class MainProc extends ProcessInterface
+{
 
-    public MainProc(RealMachine realMachine)
-    {
-        this.realMachine = realMachine;
-        this.cpu = realMachine.getCpu();
-        inputScreen = cpu.getRMScreen().getConsole();
-        outputScreen = cpu.getRMScreen().getScreen();
-        button = cpu.getRMScreen().getENTRYButton();
-        button.addActionListener(InteractionMode);
+    public MainProc(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor) {
+        super(father, ProcessEnum.State.BLOCKED, MAIN_PROC_PRIORITY, MAIN_PROC, processPlaner, resourceDistributor);
+        new Resource(this, ResourceEnum.Name.TASK_IN_DRUM, ResourceEnum.Type.DYNAMIC);
+        new Resource(this, ResourceEnum.Name.START_EXECUTION, ResourceEnum.Type.DYNAMIC);
+
     }
 
-    private ActionListener InteractionMode = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-//            new Thread(() -> testInteractions()).start();
-            new Thread(() -> interactions()).start();
+    private int IC = 0;
+
+
+    @Override
+    public void executeTask() {
+        super.executeTask();
+        switch (IC)
+        {
+            case 0:
+                IC++;
+                //Blokavimasis laukiant “Pradėti vykdymą” resurso
+                resourceDistributor.ask(ResourceEnum.Name.START_EXECUTION,this);
+                break;
+            case 1:
+                IC++;
+                //Blokavimasis laukiant “Užduotis būgne” resurso
+                resourceDistributor.ask(ResourceEnum.Name.TASK_IN_DRUM,this);
+                break;
+            case 2:
+                IC=0;
+                System.out.println(ANSI_BLUE + "TURIATEITIIKICIA --------------->"  + ANSI_BLACK);
+                boolean isTaskPrepared = true;
+                if(isTaskPrepared)
+                {
+                    //Kuriamas procesas JobGorvernor, suteikiant jam “Užduotis būgne” kaip pradinį resursą
+                    resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  "Tam kartui uzteks");
+                }else {
+                    //Naikinamas procesas JobGorvernor, sukūręs gautąjį resursą
+                }
+                break;
         }
-    };
 
-    void interactions()
-    {
-        List<String> lines = Arrays.asList(inputScreen.getText().split("\\s+"));
-        String command = lines.get(0);
-        button.setEnabled(false);
-
-        if(command.equalsIgnoreCase("CREATEVM")) {
-            String filename = lines.get(1).replace("\"", "");
-            outputScreen.append(command + " ----------------- > " + filename+'\n');
-            System.out.println(filename);
-            Constants.PROCESS_STATUS status = realMachine.getJobGorvernor().createVirtualMachine(filename);
-            outputScreen.append(command + " ----------------- > "+status+'\n');
-        }else if(command.equalsIgnoreCase("RUNALL")) {
-            Constants.PROCESS_STATUS status = realMachine.getJobGorvernor().runAll();
-            outputScreen.append(command + " ----------------- > "+status);
-        } else if(command.equalsIgnoreCase("TICKMODE")) {
-            String action = lines.get(1);
-            if(action.equalsIgnoreCase("ON")) {
-                outputScreen.append(command + " ----------------- > " + action+'\n');
-                OSFrame.TickMode = true;
-            }else if(action.equalsIgnoreCase("OFF")) {
-                outputScreen.append(command + " ----------------- > " + action+'\n');
-                OSFrame.TickMode = false;
-            }
-        }else {
-            outputScreen.append("Sorry can not understand you :( "+'\n');
-        }
-        button.setEnabled(true);
     }
-
-
-
-////            new Thread(() -> testInteractions()).start();
-    void testInteractions(){
-////        CREATEVM "prog3.txt"
-        for (int i = 0;i<1; i++) realMachine.getJobGorvernor().createVirtualMachine( "prog3.txt");
-        realMachine.getJobGorvernor().runAll();
-////        TickMode = true;
-//////        RUNALL
-//        cpu.getJobGorvernor().runAll();
-////        cpu.getPrintLine().read();
-    }
-
 }

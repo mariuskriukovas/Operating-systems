@@ -2,20 +2,66 @@ package Processes;
 
 import Components.Memory;
 import RealMachine.RealMachine;
+import Resources.ResourceDistributor;
+import Resources.ResourceEnum;
 import Tools.Constants;
 import Tools.Word;
 
 import java.util.ArrayList;
 
-public class JobToSwap {
+import static Processes.ProcessEnum.Name.JOB_TO_SWAP;
+import static Resources.ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY;
+
+public class JobToSwap extends ProcessInterface{
     //JobToSwap – užduoties patalpinimas išorinėje atmintyje
 
     private final RealMachine realMachine;
 
-    public JobToSwap(RealMachine realMachine)
+    public JobToSwap(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor)
     {
-        this.realMachine = realMachine;
+        super(father, ProcessEnum.State.BLOCKED, ProcessEnum.JOB_TO_SWAP_PRIORITY, JOB_TO_SWAP,processPlaner, resourceDistributor);
+        this.realMachine = father;
+
     }
+
+    private int IC = 0;
+
+    @Override
+    public void executeTask() {
+        super.executeTask();
+
+        switch (IC)
+        {
+            case 0:
+                IC++;
+                //Blokavimasis laukiant  “Užduoties vykdymo parametrai supervizorinėje atmintyje”  resurso
+                resourceDistributor.ask(TASK_PARAMETERS_IN_SUPERVISOR_MEMORY,this);
+                break;
+            case 1:
+                IC++;
+                boolean doInternalMemoryHasSpace = true;
+
+                if(doInternalMemoryHasSpace) {
+                    IC = 2;
+                    //Išorinėje atmintyje įrašomi užduoties blokai.
+                    //Sugeneruojamas unikalus uždoties ID.
+                    //Atlaisvinamas “Užduotis būgne” resursas  su pranešimu " ID, Paruošta vykdyti"
+                    resourceDistributor.disengage(ResourceEnum.Name.TASK_IN_DRUM,  "1234567890");
+                }else {
+                    IC = 0;
+                    // Atlaisvinamas “"Užduotis įvykdyta” resursas su pranešimu " Truksta išorinės atminties"
+                    resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  "Truksta isorines atminties");
+                }
+                break;
+            case 2:
+                IC = 0;
+                //Atlaisvinamas “"Užduotis įvykdyta” resursas su pranešimu " Užduotis užkrauta sėkmingai"
+                resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  "Užduotis užkrauta sėkmingai");
+                break;
+        }
+
+    }
+
 
     //    STACK_SEGMENT = 0;
     //    DATA_SEGMENT = 21760; 5500

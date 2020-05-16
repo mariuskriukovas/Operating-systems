@@ -1,19 +1,37 @@
 package Tools;
 
 import Components.CPU;
+import Processes.ProcessInterface;
+import Resources.Resource;
+import Resources.ResourceEnum;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
-public class RegistersStorage {
+
+public class SupervisorMemory extends Resource
+{
 
     private long id = 0;
     private final HashMap<Long, Registers> saveCPUState;
     private CPU cpu;
+    private final ArrayList<String> fileNames;
 
-    public RegistersStorage(CPU cpu){
+    public SupervisorMemory(ProcessInterface father, CPU cpu){
+        super(father, ResourceEnum.Name.SUPERVISOR_MEMORY, ResourceEnum.Type.STATIC);
+        setAvailability(true);
+
+        fileNames = new ArrayList<String>(10);
+
         this.cpu = cpu;
         saveCPUState = new HashMap<>(100);
     }
+
+    public ArrayList<String> getFileList()
+    {
+       return fileNames;
+    }
+
 
     private long generateID(){
         id++;

@@ -3,14 +3,15 @@ package Processes;
 import Components.CPU;
 import Components.Memory;
 import RealMachine.RealMachine;
-import Tools.Constants;
+import Resources.Resource;
+import Resources.ResourceDistributor;
+import Resources.ResourceEnum;
 import Tools.Word;
 
-import static Tools.Constants.CODE_SEGMENT;
-import static Tools.Constants.DATA_SEGMENT;
-import static Tools.Constants.STACK_SEGMENT;
+import static Processes.ProcessEnum.Name.SWAPPING;
+import static Tools.Constants.*;
 
-public class Swapping {
+public class Swapping extends ProcessInterface {
 
 
     private final CPU cpu;
@@ -18,14 +19,28 @@ public class Swapping {
     private final Memory internalMemory;
     private final Memory externalMemory;
 
-    public Swapping(RealMachine realMachine) {
-        this.realMachine = realMachine;
+    public Swapping(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor) {
+
+        super(father, ProcessEnum.State.BLOCKED,  ProcessEnum.SWAPPING_PRIORITY, SWAPPING,processPlaner, resourceDistributor);
+
+        new Resource(this, ResourceEnum.Name.SWAPPING, ResourceEnum.Type.DYNAMIC);
+
+        this.realMachine = father;
         this.cpu = realMachine.getCpu();
         internalMemory = realMachine.getInternalMemory();
         externalMemory = realMachine.getExternalMemory();
+
+
     }
 
 
+    @Override
+    public void executeTask() {
+        super.executeTask();
+
+        resourceDistributor.ask(ResourceEnum.Name.SWAPPING,this);
+
+    }
 
     public void setSS(int newSSBlock){
         try {
@@ -96,242 +111,6 @@ public class Swapping {
         }
     }
 
-
-//    //    Word address, ---> RL
-//    //    Word value  ---> RH
-//    public void SETCS() {
-//        cpu.showProcess(Constants.PROCESS.Swapping);
-//
-//        Word address = cpu.getRL().copy();
-//        Word value = cpu.getRH().copy();
-//
-//        int word = address.getWordFromAddress();
-//        int block = address.getBlockFromAddress();
-//
-//        if (block != cpu.getCSB().getNumber()) {
-//            try {
-//                cpu.setSI(LOADED_WRONG_CS_BLOCK);
-//                //RL-->BLOCK
-//                cpu.setRL(new Word(block));
-//                TEST();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        try {
-//            Word virtualAddress = cpu.getCS().add(word);
-//            cpu.writeToInternalMemory(virtualAddress, value);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        cpu.showPreviousProcess();
-//    }
-
-    public void SETDS()
-    {
-//        cpu.showProcess(Constants.PROCESS.Swapping);
-//
-//        Word address = cpu.getRL().copy();
-//        Word value = cpu.getRH().copy();
-//
-//        int word = address.getWordFromAddress();
-//        int block = address.getBlockFromAddress();
-//
-//        if (block != cpu.getDSB().getNumber())
-//        {
-//            try {
-//                cpu.setSI(LOADED_WRONG_DS_BLOCK);
-//                //RL-->BLOCK
-//                cpu.setRL(new Word(block));
-//                TEST();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        try {
-//            Word virtualAddress = cpu.getDS().add(word);
-//            cpu.writeToInternalMemory(virtualAddress, value);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        cpu.showPreviousProcess();
-    }
-//
-//    //    Word address, ---> RL
-//    //    Word value  ---> RH
-//    public void SETSS() {
-//        cpu.showProcess(Constants.PROCESS.Swapping);
-//
-//        Word address = cpu.getRL().copy();
-//        Word value = cpu.getRH().copy();
-//
-//        int word = address.getWordFromAddress();
-//        int block = address.getBlockFromAddress();
-//
-//        if (block != cpu.getSSB().getNumber()) {
-//            try {
-//                cpu.setSI(LOADED_WRONG_SS_BLOCK);
-//                //RL-->BLOCK
-//                cpu.setRL(new Word(block));
-//                TEST();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        try {
-//            Word virtualAddress = cpu.getSS().add(word);
-//            cpu.writeToInternalMemory(virtualAddress, value);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        cpu.showPreviousProcess();
-//    }
-//
-//    //    Word address, ---> RL
-//    //    RL ---> value
-//
-//    public void GETCS() {
-//        cpu.showProcess(Constants.PROCESS.Swapping);
-//
-//        Word address = cpu.getRL().copy();
-//        int word = address.getWordFromAddress();
-//        int block = address.getBlockFromAddress();
-//
-//        if (block != cpu.getCSB().getNumber()) {
-//            try {
-//                cpu.setSI(LOADED_WRONG_CS_BLOCK);
-//                //RL-->BLOCK
-//                cpu.setRL(new Word(block));
-//                TEST();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        try {
-//            Word virtualAddress = cpu.getCS().add(word);
-//            cpu.setRL(cpu.getFromInternalMemory(virtualAddress));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        cpu.showPreviousProcess();
-//    }
-//
-//    //    Word address, ---> RL
-//    //    RL ---> value
-//
-//    public void GETSS() {
-//        cpu.showProcess(Constants.PROCESS.Swapping);
-//
-//        Word address = cpu.getRL().copy();
-//        int word = address.getWordFromAddress();
-//        int block = address.getBlockFromAddress();
-//
-//        if (block != cpu.getSSB().getNumber()) {
-//            try {
-//                cpu.setSI(LOADED_WRONG_SS_BLOCK);
-//                //RL-->BLOCK
-//                cpu.setRL(new Word(block));
-//                TEST();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        try {
-//            Word virtualAddress = cpu.getSS().add(word);
-//            cpu.setRL(cpu.getFromInternalMemory(virtualAddress));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        cpu.showPreviousProcess();
-//    }
-//
-//    //    Word address, ---> RL
-//    //    RL ---> value
-//
-//    public void GETDS() {
-//        cpu.showProcess(Constants.PROCESS.Swapping);
-//
-//        Word address = cpu.getRL().copy();
-//        int word = address.getWordFromAddress();
-//        int block = address.getBlockFromAddress();
-//
-//        if (block != cpu.getDSB().getNumber()) {
-//            try {
-//                cpu.setSI(LOADED_WRONG_DS_BLOCK);
-//                //RL-->BLOCK
-//                cpu.setRL(new Word(block));
-//                TEST();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        try {
-//            Word virtualAddress = cpu.getDS().add(word);
-//            cpu.setRL(cpu.getFromInternalMemory(virtualAddress));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        cpu.showPreviousProcess();
-//    }
-//
-//
-//    //    Word newInternalBlock, ---> RL
-//
-//    private void TEST() {
-//
-//        int currentInternalBlock = - 1;
-//        int currentExternalBlock = - 1;
-//        int newInternalBlock = (int) cpu.getRL().getNumber();
-//        int newExternalBlock = - 1;
-//
-//        try {
-//            switch (cpu.getSI()) {
-//                case LOADED_WRONG_SS_BLOCK:
-//                    currentInternalBlock = cpu.getSS().getBlockFromAddress();
-//                    currentExternalBlock = cpu.getPTRValue((int) cpu.getSSB().getNumber()).getBlockFromAddress();
-//                    newExternalBlock = cpu.getPTRValue(newInternalBlock + (STACK_SEGMENT / 256)).getBlockFromAddress();
-//                    cpu.setSSB(cpu.getRL());
-//                    break;
-//                case LOADED_WRONG_DS_BLOCK:
-//                    currentInternalBlock = cpu.getDS().getBlockFromAddress();
-//                    currentExternalBlock = cpu.getPTRValue((int) cpu.getDSB().getNumber()).getBlockFromAddress();
-//                    newExternalBlock = cpu.getPTRValue(newInternalBlock + (DATA_SEGMENT / 256)).getBlockFromAddress();
-//                    cpu.setDSB(cpu.getRL());
-//                    break;
-//                case LOADED_WRONG_CS_BLOCK:
-//                    currentInternalBlock = cpu.getCS().getBlockFromAddress();
-//                    currentExternalBlock = cpu.getPTRValue((int) cpu.getCSB().getNumber()).getBlockFromAddress();
-//                    newExternalBlock = cpu.getPTRValue(newInternalBlock + (CODE_SEGMENT / 256)).getBlockFromAddress();
-//                    cpu.setCSB(cpu.getRL());
-//                    break;
-//            }
-//
-//            //    int fromBlock -->RL
-//            //    int toBlock --> RH
-//            cpu.setRL(new Word(currentInternalBlock));
-//            cpu.setRH(new Word(currentExternalBlock));
-//            cpu.getLoader().loadToExternalMemory();
-//
-//
-//            cpu.setRL(new Word(newExternalBlock));
-//            cpu.setRH(new Word(currentInternalBlock));
-//            cpu.getLoader().loadToInternalMemory();
-//
-////            System.out.println(" newExternalBlock  --- > " + newExternalBlock);
-////            System.out.println(" currentInternalBlock   --- > " + currentInternalBlock);
-////            System.out.println(" uzkruana is i  --- > ");
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
 }
 
 

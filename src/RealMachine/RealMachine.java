@@ -4,12 +4,19 @@ import Components.CPU;
 import Components.Memory;
 import Components.UI.OSFrame;
 import Processes.*;
+import Resources.Resource;
+import Resources.ResourceDistributor;
+import Resources.ResourceEnum;
 import VirtualMachine.VirtualMachine;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class RealMachine {
+import static Processes.ProcessEnum.Name.REAL_MACHINE;
+import static Processes.ProcessEnum.REAL_MACHINE_PRIORITY;
+import static Resources.ResourceEnum.Name.*;
+
+public class RealMachine extends ProcessInterface {
 
     private final int MAXRUNNING = 4;
 
@@ -24,29 +31,73 @@ public class RealMachine {
     private final Swapping swapping;
     private final PrintLine printLine;
     private final JobGorvernor jobGorvernor;
-    private final MainProc mainProc;
+    private final ReadFromInterface readFromInterface;
 
     private final Deque<String> waitingTasks;
     private final Deque<VirtualMachine> activeTasks;
 
-    public RealMachine(){
-        internalMemory = new Memory(16, 4);
-        externalMemory = new Memory(65536, 256);
+
+
+    public RealMachine(ProcessInterface father, ProcessPlaner processPlaner,  ResourceDistributor resourceDistributor) {
+        super(father, ProcessEnum.State.ACTIVE, REAL_MACHINE_PRIORITY, REAL_MACHINE,processPlaner, resourceDistributor);
+
+        //creating static resurces
+
+        internalMemory = new Memory(this, INTERNAL_MEMORY, 16, 4);
+        externalMemory = new Memory(this, EXTERNAL_MEMORY,65536, 256);
+
+
         screen = new OSFrame(this);
         cpu = new CPU(this);
+
+
+        // creating dynamic resurces
+        Resource r = new Resource(this, OS_END, ResourceEnum.Type.DYNAMIC);
 
         waitingTasks = new ArrayDeque<>(100);
         activeTasks = new ArrayDeque<VirtualMachine>(4);
 
-        parser = new Parser();
-        jobToSwap = new JobToSwap(this);
-        loader = new Loader(this);
-        swapping = new Swapping(this);
-        printLine = new PrintLine(this);
-        jobGorvernor = new JobGorvernor(this);
-        mainProc = new MainProc(this);
+        // creating process
+
+        parser = new Parser(this, processPlaner, resourceDistributor);
+        jobToSwap = new JobToSwap(this, processPlaner, resourceDistributor);
+        loader = new Loader(this, processPlaner, resourceDistributor);
+        swapping = new Swapping(this, processPlaner, resourceDistributor);
+        printLine = new PrintLine(this, processPlaner, resourceDistributor);
+        jobGorvernor = new JobGorvernor(this, processPlaner, resourceDistributor);
+
+        readFromInterface = new ReadFromInterface(this, processPlaner, resourceDistributor);
+
+        MainProc mainProc = new MainProc(this, processPlaner, resourceDistributor);
+        Interrupt interrupt = new Interrupt(this, processPlaner, resourceDistributor);
+
+
+        setActive(true);
+
+        parser.setPrepared(false);
+        jobToSwap.setPrepared(false);
+        loader.setPrepared(false);
+        swapping.setPrepared(false);
+        printLine.setPrepared(false);
+        jobGorvernor.setPrepared(false);
+        readFromInterface.setPrepared(false);
+        mainProc.setPrepared(false);
+        interrupt.setPrepared(false);
+
+        readFromInterface.setPrepared(true);
+        mainProc.setPrepared(true);
+        parser.setPrepared(true);
+        jobToSwap.setPrepared(true);
+
+        processPlaner.runOperatingSystem();
     }
 
+    @Override
+    public void executeTask() {
+        super.executeTask();
+        resourceDistributor.ask(OS_END,this);
+//        stop();
+    }
 
     public Memory getExternalMemory() {
         return externalMemory;

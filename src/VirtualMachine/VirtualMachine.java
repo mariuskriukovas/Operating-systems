@@ -1,12 +1,20 @@
 package VirtualMachine;
 
 import Components.CPU;
+import Processes.JobGorvernor;
+import Processes.ProcessEnum;
+import Processes.ProcessInterface;
+import Processes.ProcessPlaner;
 import RealMachine.RealMachine;
+import Resources.ResourceDistributor;
 import Tools.Constants;
 import Tools.Exceptions;
 import Tools.Word;
 
-public class VirtualMachine {
+import static Processes.ProcessEnum.Name.VIRTUAL_MACHINE;
+import static Processes.ProcessEnum.VIRTUAL_MACHINE_PRIORITY;
+
+public class VirtualMachine extends ProcessInterface {
 
     private final RealMachine realMachine;
     private final Interpretator interpretator;
@@ -16,8 +24,14 @@ public class VirtualMachine {
     private long stateID = -1;
     private final long VMID;
 
-    public VirtualMachine(RealMachine realMachine, String name, long ID)
+
+
+
+    public VirtualMachine(JobGorvernor father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor,
+            RealMachine realMachine, String name, long ID)
     {
+        super(father, ProcessEnum.State.ACTIVE, VIRTUAL_MACHINE_PRIORITY, VIRTUAL_MACHINE,processPlaner, resourceDistributor);
+
         this.realMachine = realMachine;
         this.name = name;
         this.cpu = realMachine.getCpu();
@@ -52,10 +66,10 @@ public class VirtualMachine {
     }
 
     private void saveMyState(){
-        stateID = cpu.getRegistersStorage().saveVMRegisters();
+        stateID = cpu.getSupervisorMemory().saveVMRegisters();
     }
     private void restoreMyState(){
-        cpu.getRegistersStorage().restoreRegisters(stateID);
+        cpu.getSupervisorMemory().restoreRegisters(stateID);
         stateID = -1;
     }
 

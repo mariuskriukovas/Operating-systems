@@ -1,5 +1,8 @@
 package Components;
 
+import Processes.ProcessInterface;
+import Resources.Resource;
+import Resources.ResourceEnum;
 import Tools.Constants;
 import Tools.Word;
 
@@ -9,7 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class Memory
+public class Memory extends Resource
 {
     private int blockNumber = 0;
     private int wordNumber =  0;
@@ -17,9 +20,12 @@ public class Memory
     private final Deque<Integer> space;
     private final int step;
 
-    public Memory(int blockNumber, int step)
+    public Memory(ProcessInterface father, ResourceEnum.Name name, int blockNumber, int step)
     {
+        super(father, name, ResourceEnum.Type.STATIC);
+
         this.step = step;
+        blockNumber = 256*2;
         this.blockNumber = blockNumber;
         this.wordNumber = blockNumber*Constants.BLOCK_LENGTH;
         memory = new Word[blockNumber][Constants.BLOCK_LENGTH];

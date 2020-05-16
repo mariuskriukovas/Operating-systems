@@ -2,6 +2,9 @@ package Processes;
 
 import Components.CPU;
 import RealMachine.RealMachine;
+import Resources.Resource;
+import Resources.ResourceDistributor;
+import Resources.ResourceEnum;
 import Tools.Constants;
 import Tools.Exceptions;
 import Tools.Word;
@@ -12,9 +15,12 @@ import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.List;
 
+import static Processes.ProcessEnum.Name.PRINT_LINE;
+import static Processes.ProcessEnum.PRINT_LINE_PRIORITY;
+import static Resources.ResourceEnum.Name.PRINTLINE;
 import static java.util.stream.Collectors.toList;
 
-public class PrintLine {
+public class PrintLine extends ProcessInterface {
 
     public static final int MULTIPLE = 1;
     private final RealMachine realMachine;
@@ -24,15 +30,31 @@ public class PrintLine {
     private final JButton button;
     private final Boolean waitingForInput = true;
 
-    public PrintLine(RealMachine realMachine){
-        this.realMachine = realMachine;
+    public PrintLine(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor){
+
+        super(father, ProcessEnum.State.BLOCKED, PRINT_LINE_PRIORITY, PRINT_LINE,processPlaner, resourceDistributor);
+
+
+
+        this.realMachine = father;
         this.cpu = realMachine.getCpu();
         inputScreen = cpu.getRMScreen().getConsole();
         outputScreen = cpu.getRMScreen().getScreen();
         button = cpu.getRMScreen().getInputKey();
         button.addActionListener(InsertAction);
+
+        new Resource(this, PRINTLINE, ResourceEnum.Type.DYNAMIC);
+
+
     }
 
+
+    @Override
+    public void executeTask() {
+        super.executeTask();
+
+        resourceDistributor.ask(PRINTLINE,this);
+    }
 
     public void print(Word address) {
         String command  = "PRINT";

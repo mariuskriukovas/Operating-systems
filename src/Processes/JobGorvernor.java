@@ -3,13 +3,19 @@ package Processes;
 import Components.CPU;
 import Components.Memory;
 import RealMachine.RealMachine;
+import Resources.Resource;
+import Resources.ResourceDistributor;
+import Resources.ResourceEnum;
 import Tools.Constants;
 import VirtualMachine.VirtualMachine;
 
 import java.util.Deque;
 import java.util.HashMap;
 
-public class JobGorvernor {
+import static Processes.ProcessEnum.JOB_GORVERNOR_PRIORITY;
+import static Processes.ProcessEnum.Name.JOB_GORVERNOR;
+
+public class JobGorvernor extends ProcessInterface {
 
     private long idGenerator = 0;
     private final int TIMERTIME = 10;
@@ -22,65 +28,73 @@ public class JobGorvernor {
     private final HashMap<Long, Long> registerStates;
     private final CPU cpu;
 
+    public JobGorvernor(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor){
+        super(father, ProcessEnum.State.BLOCKED, JOB_GORVERNOR_PRIORITY, JOB_GORVERNOR,processPlaner, resourceDistributor);
 
-    public JobGorvernor(RealMachine realMachine){
-        this.realMachine = realMachine;
+        this.realMachine = father;
         this.cpu = realMachine.getCpu();
         internalMemory = realMachine.getInternalMemory();
         externalMemory = realMachine.getExternalMemory();
         activeTasks = realMachine.getActiveTasks();
         waitingTasks = realMachine.getWaitingTasks();
         registerStates = new HashMap<>(100);
+
+
     }
 
 
-    public Constants.PROCESS_STATUS createVirtualMachine(String fileName){
-        //if we have free 4 blocks at internal memory
-        if(activeTasks.size()<realMachine.getMAXRUNNING())
-        {
-            System.out.println("Added to active list: "+ fileName);
-            int internalMemoryBegin = -1;
-            int externalMemoryBegin = -1;
-            try {
-                //find free space
-                //space starts from last to first available block groups
-                internalMemoryBegin = internalMemory.getFreeSpaceBeginAddress();
-                externalMemoryBegin = externalMemory.getFreeSpaceBeginAddress();
-                //parse .txt file in array of commands
-                //load those commands to external memory
-                realMachine.getJobToSwap().uploadTaskToExternalMemory(fileName, externalMemoryBegin);
-                //creating memory table in first free block of internal memory.
-                //block number saved in PTR register
-                realMachine.getLoader().createMemoryTable(internalMemoryBegin, externalMemoryBegin);
-                //setting segment registers with first values of each block
-                realMachine.getLoader().initSegmentRegisters();
-                //registers values are external memory blocks who are loaded in internal memory in this sequent
-                //  SS ----- > PTR + 1
-                //  DS ----- > PTR + 2
-                //  CS ----- > PTR + 3
+        public Constants.PROCESS_STATUS createVirtualMachine(String fileName){
 
-                realMachine.getLoader().loadVirtualMachineMemory();
-                //added to prepared tasks list
-                final long vmID = generateVMID();
-                activeTasks.push(new VirtualMachine(realMachine, fileName, vmID));
-                //add registers to storage
-                final long registerID = cpu.getRegistersStorage().saveRMRegisters();
-                registerStates.put(vmID, registerID);
-            }catch (Exception e){
-                e.printStackTrace();
-                return Constants.PROCESS_STATUS.FAILED;
+            Resource upload = resourceDistributor.get(ResourceEnum.Name.UPLOAD_VIRTUAL_MACHINE);
+            System.out.println("---------------------------> " + upload.getElementList());
+            //if we have free 4 blocks at internal memory
+            if(activeTasks.size()<realMachine.getMAXRUNNING())
+            {
+                System.out.println("Added to active list: "+ fileName);
+                int internalMemoryBegin = -1;
+                int externalMemoryBegin = -1;
+                try {
+                    //find free space
+                    //space starts from last to first available block groups
+                    internalMemoryBegin = internalMemory.getFreeSpaceBeginAddress();
+                    externalMemoryBegin = externalMemory.getFreeSpaceBeginAddress();
+                    //parse .txt file in array of commands
+                    //load those commands to external memory
+                    realMachine.getJobToSwap().uploadTaskToExternalMemory(fileName, externalMemoryBegin);
+                    //creating memory table in first free block of internal memory.
+                    //block number saved in PTR register
+                    realMachine.getLoader().createMemoryTable(internalMemoryBegin, externalMemoryBegin);
+                    //setting segment registers with first values of each block
+                    realMachine.getLoader().initSegmentRegisters();
+                    //registers values are external memory blocks who are loaded in internal memory in this sequent
+                    //  SS ----- > PTR + 1
+                    //  DS ----- > PTR + 2
+                    //  CS ----- > PTR + 3
+
+                    realMachine.getLoader().loadVirtualMachineMemory();
+                    //added to prepared tasks list
+                    final long vmID = generateVMID();
+                    activeTasks.push(new VirtualMachine(
+                            this,processPlaner, resourceDistributor
+                            ,realMachine, fileName, vmID));
+                    //add registers to storage
+                    final long registerID = cpu.getSupervisorMemory().saveRMRegisters();
+                    registerStates.put(vmID, registerID);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    return Constants.PROCESS_STATUS.FAILED;
+                }
+            }else {
+                System.out.println("Added to waiting list: "+ fileName);
+                waitingTasks.push(fileName);
             }
-        }else {
-            System.out.println("Added to waiting list: "+ fileName);
-            waitingTasks.push(fileName);
+            return Constants.PROCESS_STATUS.COMPLETED;
         }
-        return Constants.PROCESS_STATUS.COMPLETED;
-    }
 
     private void prepareRegisters(long vmID){
         if(registerStates.containsKey(vmID)) {
             long registersID = registerStates.get(vmID);
-            cpu.getRegistersStorage().restoreRegisters(registersID);
+            cpu.getSupervisorMemory().restoreRegisters(registersID);
             registerStates.remove(vmID);
         }
         try {
@@ -105,7 +119,7 @@ public class JobGorvernor {
                 break;
             case TIMER_INTERUPTION:
                 System.err.println("TIMER_INTERUPTION : "+ virtualMachine.getName() + "ID : " + virtualMachine.getID());
-                long registersID = cpu.getRegistersStorage().saveRMRegisters();
+                long registersID = cpu.getSupervisorMemory().saveRMRegisters();
                 registerStates.put(virtualMachine.getID(),registersID);
                 break;
         }
@@ -147,5 +161,14 @@ public class JobGorvernor {
             e.printStackTrace();
         }
         System.err.println("Clean");
+    }
+
+    @Override
+    public void executeTask() {
+        super.executeTask();
+        Resource internalMemory = resourceDistributor.get(ResourceEnum.Name.INTERNAL_MEMORY);
+        System.out.println("---------------------------> " + "internalMemory");
+        setPrepared(false);
+        processPlaner.plan();
     }
 }

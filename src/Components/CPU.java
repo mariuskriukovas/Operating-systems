@@ -6,7 +6,7 @@ import RealMachine.RealMachine;
 import Tools.Constants;
 import Tools.Constants.*;
 import Tools.Exceptions;
-import Tools.RegistersStorage;
+import Tools.SupervisorMemory;
 import Tools.Word;
 
 import java.util.ArrayDeque;
@@ -44,7 +44,7 @@ public class CPU {
     private final RMPanel RMScreen;
     private final VMPanel VMScreen;
 
-    private final RegistersStorage registersStorage;
+    private final SupervisorMemory supervisorMemory;
 
     private final RealMachine realMachine;
 
@@ -54,7 +54,7 @@ public class CPU {
         this.internalMemory = realMachine.getInternalMemory();
         RMScreen = realMachine.getScreen().getScreenForRealMachine();
         VMScreen = realMachine.getScreen().getScreenForVirtualMachine();
-        registersStorage = new RegistersStorage(this);
+        supervisorMemory = new SupervisorMemory(realMachine, this);
         realMachine.getScreen().setVisible(true);
         realMachine.getScreen().setReady(true);
     }
@@ -260,8 +260,8 @@ public class CPU {
         RMScreen.setTIRegister(TI);
     }
 
-    public RegistersStorage getRegistersStorage() {
-        return registersStorage;
+    public SupervisorMemory getSupervisorMemory() {
+        return supervisorMemory;
     }
 
         public PROGRAM_INTERRUPTION getPI() {

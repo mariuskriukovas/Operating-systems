@@ -222,8 +222,8 @@ public class Interpretator
     private void CMR()
     {
         System.out.println("CMR()");
-        System.out.println("RH"+cpu.getRH());
-        System.out.println("RL"+cpu.getRL());
+        //System.out.println("RH"+cpu.getRH());
+        //System.out.println("RL"+cpu.getRL());
 
         Word w1 = cpu.getRL();
         Word w2 =  cpu.getRH();
@@ -385,8 +385,10 @@ public class Interpretator
         System.out.println("GET()");
         try {
             String virtualAddress = getVirtualAddress();
+
             Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
             realMachine.getPrintLine().read(address);
+
         }catch (Exceptions.ProgramInteruptionException e){
             e.printStackTrace();
             Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
