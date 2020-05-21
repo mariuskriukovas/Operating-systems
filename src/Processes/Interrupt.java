@@ -5,6 +5,7 @@ import Resources.Resource;
 import Resources.ResourceDistributor;
 import Resources.ResourceEnum;
 import Components.SupervisorMemory;
+import Tools.Constants;
 import Tools.Word;
 import VirtualMachine.VirtualMachine;
 
@@ -47,6 +48,7 @@ public class Interrupt extends ProcessInterface {
                 IC = 0;
                 VirtualMachine vm = (VirtualMachine)resourceDistributor.get(PROCESS_INTERRUPT).get(0);
                 CPU cpu = vm.getCpu();
+                cpu.setMODE(Constants.SYSTEM_MODE.SUPERVISOR_MODE);
                 switch (cpu.getSI())
                 {
                     case HALT:

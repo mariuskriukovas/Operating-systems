@@ -123,10 +123,9 @@ public class Parser extends ProcessInterface {
                 IC++;
                 //Nuskaitomas resurso pranesime nurodytas failas.
                 SupervisorMemory supervisorMemory = (SupervisorMemory) resourceDistributor.get(SUPERVISOR_MEMORY);
-                String fileName = supervisorMemory.getFileList().get(0);
+                String fileName = supervisorMemory.getFileList().getFirst();
                 parseFile(fileName);
                 //Ar failas turi antrastę DATSEG ?
-
                 if(dataSegment.size()>0) {
                     //taip
                     //Supervizorinėje atmintyje išsaugomas užduoties duomenų segentas.

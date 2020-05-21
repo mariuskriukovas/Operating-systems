@@ -29,9 +29,6 @@ public class ReadFromInterface extends ProcessInterface{
     enum Situation{
         CREATEVM,
         RUNALL,
-        TICKMODEON,
-        TICKMODEOFF,
-        TEST,
         OSEND,
     }
 
@@ -68,11 +65,6 @@ public class ReadFromInterface extends ProcessInterface{
         @Override
         public void actionPerformed(ActionEvent e) {
             readUserInput();
-            synchronized (ProcessPlaner.looop)
-            {
-                ProcessPlaner.looop.notifyAll();
-            }
-
         }
     };
 
@@ -82,24 +74,27 @@ public class ReadFromInterface extends ProcessInterface{
         List<String> lines = Arrays.asList(inputScreen.getText().split("\\s+"));
         String command = lines.get(0);
 //        button.setEnabled(false);
-
         if(command.equalsIgnoreCase("CREATEVM")) {
             String filename = lines.get(1).replace("\"", "");
             outputScreen.append(command + " ----------------- > " + filename+'\n');
             resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.CREATEVM, inputScreen.getText());
+            synchronized (ProcessPlaner.looop) { ProcessPlaner.looop.notifyAll(); }
+
         }else if(command.equalsIgnoreCase("RUNALL")) {
             //OSFrame.TickMode = true;
             outputScreen.append(command + " ----------------- > "+'\n');
             outputScreen.setForeground(Color.BLACK);
             resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.RUNALL);
+            synchronized (ProcessPlaner.looop) { ProcessPlaner.looop.notifyAll(); }
+
         } else if(command.equalsIgnoreCase("TICKMODE")) {
             String action = lines.get(1);
             if(action.equalsIgnoreCase("ON")) {
                 outputScreen.append(command + " ----------------- > " + action+'\n');
-                resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.TICKMODEON);
+                OSFrame.TickMode = true;
             }else if(action.equalsIgnoreCase("OFF")) {
                 outputScreen.append(command + " ----------------- > " + action+'\n');
-                resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.TICKMODEOFF);
+                OSFrame.TickMode = false;
             }
         } else if(command.equalsIgnoreCase("OSEND")) {
                 outputScreen.append(command + " ----------------- > " + command+'\n');
@@ -136,23 +131,17 @@ public class ReadFromInterface extends ProcessInterface{
                 {
                     case RUNALL:
                         //Atlaisvinamas resursas “Pradėti vykdymą”. Skirtas procesui MainProc
-                        System.out.println(ANSI_BLUE + " --------------->2"+ ANSI_BLACK);
                         resourceDistributor.disengage(ResourceEnum.Name.START_EXECUTION);
                         break;
                     case CREATEVM:
                         //Blokavimasis laukiant supervizorinės atminties resurso
-                        System.out.println(ANSI_RED + " --------------->2"+ ANSI_BLACK);
-                        //Blokavimasis laukiant supervizorinės atminties resurso
                         SupervisorMemory supervisorMemory = (SupervisorMemory)resourceDistributor.get(ResourceEnum.Name.SUPERVISOR_MEMORY);
                         //Failo pavadinimo nuskaitymas
-                        supervisorMemory.getFileList().add("prog1.txt");
+
+                        String[] words = inputScreen.getText().split("\\s+");
+                        supervisorMemory.getFileList().push(words[1]);
                         //Atlaisvinamas resursas “Užduotis supervizorinėje atmintyje”. Skirtas procesui Parser
                         resourceDistributor.disengage(ResourceEnum.Name.TASK_IN_SUPERVISOR_MEMORY);
-                        break;
-                    case TICKMODEON:
-
-                        break;
-                    case TICKMODEOFF:
                         break;
                     case OSEND:
                         break;
@@ -172,6 +161,9 @@ public class ReadFromInterface extends ProcessInterface{
                 teest++;
                 break;
         }
+    }
+}
+
 
 //        if(command.equalsIgnoreCase("CREATEVM")) {
 //            String filename = lines.get(1).replace("\"", "");
@@ -191,11 +183,6 @@ public class ReadFromInterface extends ProcessInterface{
 //                outputScreen.append(command + " ----------------- > " + action+'\n');
 //                OSFrame.TickMode = false;
 //            }
-    }
-}
-
-
-
 //    ////            new Thread(() -> testInteractions()).start();
 //    void testInteractions(){
 //////        CREATEVM "prog3.txt"

@@ -9,20 +9,17 @@ import Tools.Constants;
 import Tools.Exceptions;
 import Tools.Word;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 
 
 public class SupervisorMemory extends Resource
 {
 
-    private long id = 0;
-    private final HashMap<Integer, Registers> saveRMState;
-    private final HashMap<Integer, Registers> saveVMState;
-    private final HashMap<Integer, Registers> taskState;
-
     private CPU cpu;
-    private final ArrayList<String> fileNames;
+    private final Deque<String> fileNames;
 
     private final HashMap<String, ArrayList<Parser.Command>> dataSegs;
     private final HashMap<String, ArrayList<Parser.Command>> codeSegs;
@@ -33,16 +30,13 @@ public class SupervisorMemory extends Resource
         super(father, ResourceEnum.Name.SUPERVISOR_MEMORY, ResourceEnum.Type.STATIC);
         setAvailability(true);
 
-        fileNames = new ArrayList<String>(10);
+        fileNames = new ArrayDeque<>(10);
         dataSegs = new HashMap<>(100);
         codeSegs = new HashMap<>(100);
 
-        saveRMState = new HashMap<>(100);
-        saveVMState = new HashMap<>(100);
-        taskState = new HashMap<>(100);
     }
 
-    public ArrayList<String> getFileList()
+    public Deque<String> getFileList()
     {
        return fileNames;
     }
@@ -56,13 +50,6 @@ public class SupervisorMemory extends Resource
 
 
 
-    public void saveTaskState(int taskID){
-      // taskState.put(taskID, new Registers(Type.ALL));
-    }
-
-    public void restoreTaskState(int taskID){
-       // taskState.get(taskID).restoreCPUState();
-    }
 
     enum Type{
         RM,

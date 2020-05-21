@@ -180,8 +180,6 @@ public class Loader extends ProcessInterface {
                 //Nustatinėjami registrai ir vykdomas blokų perkėlimas
                 State state = (State) resourceDistributor.get(LOADING_PACKAGE).get(0);
                 CPU cpu = (CPU) resourceDistributor.get(LOADING_PACKAGE).get(1);
-                System.out.println(ANSI_GREEN+"STATE -----------------> "+ state+ ANSI_BLACK);
-
                 switch (state)
                 {
                     case LOAD_VIRTUAL_MACHINE_MEMORY:

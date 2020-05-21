@@ -75,7 +75,7 @@ public class ResourceDistributor {
 //    sąrašo. Šio primityvo pabaigoje yra kviečiamas resursų paskirstytojas.
 
     public void disengage(ResourceEnum.Name resource, Object... elements){
-        System.out.println("DISENGAGE : "+  resource);
+        System.out.println(ANSI_GREEN + "DISENGAGE : "+ ANSI_BLACK+ resource);
         resourcesList.get(resource).getElements().push(new ArrayList<>(Arrays.asList(elements)));
         resourcesList.get(resource).setAvailability(true);
         distribute(resource);

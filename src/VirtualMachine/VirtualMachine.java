@@ -130,7 +130,6 @@ public class VirtualMachine extends ProcessInterface {
                 } catch (Exceptions.WrongAddressException ex) {
                     ex.printStackTrace();
                 }
-                System.out.println(ANSI_PURPLE + "WRITE BUFFER -----> " + e.address + "<---->" + e.value +ANSI_BLACK);
                 if(!cpu.getSI().equals(Constants.SYSTEM_INTERRUPTION.NONE))
                 {
                     return true;
@@ -171,6 +170,7 @@ public class VirtualMachine extends ProcessInterface {
     public void executeTask() {
         super.executeTask();
         if(launchedFirstTime)prepareRegisters();
+        cpu.setMODE(SYSTEM_MODE.USER_MODE);
         cpu.refresh();
         try {
             while (true)
@@ -191,11 +191,9 @@ public class VirtualMachine extends ProcessInterface {
                     cpu.increaseIC();
                 }
             }
-            System.out.println(ANSI_PURPLE + "VIRTUAL -----> "+cpu.getSI()+ANSI_BLACK);
         } catch (Exceptions.ProgramInteruptionException e) {
             e.printStackTrace();
         }
-        supervisorMemory.saveTaskState(taskID);
         resourceDistributor.disengage(ResourceEnum.Name.PROCESS_INTERRUPT, this);
     }
 
