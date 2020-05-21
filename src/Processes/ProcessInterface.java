@@ -1,5 +1,6 @@
 package Processes;
 
+import Components.CPU;
 import Resources.Resource;
 import Resources.ResourceDistributor;
 
@@ -16,7 +17,7 @@ public abstract class ProcessInterface
     protected final ProcessInterface father;
     protected ProcessEnum.State state;
     protected ProcessEnum.Name name;
-    protected final int priority;
+    protected  int priority;
 
     protected final ResourceDistributor resourceDistributor;
     protected final ProcessPlaner processPlaner;
@@ -116,7 +117,6 @@ public abstract class ProcessInterface
         this.active = active;
     }
 
-
     public boolean isPrepared() {
         return prepared;
     }
@@ -167,6 +167,10 @@ public abstract class ProcessInterface
 
     public String getName() {
         return name.name();
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
     }
 
     @Override

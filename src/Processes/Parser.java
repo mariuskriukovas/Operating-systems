@@ -1,10 +1,9 @@
 package Processes;
 
-import Components.Memory;
 import Resources.Resource;
 import Resources.ResourceDistributor;
 import Resources.ResourceEnum;
-import Tools.SupervisorMemory;
+import Components.SupervisorMemory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,8 +11,6 @@ import java.util.Scanner;
 
 import static Processes.ProcessEnum.Name.PARSER;
 import static Resources.ResourceEnum.Name.*;
-import static Tools.Constants.*;
-import static Tools.Constants.ANSI_RESET;
 
 public class Parser extends ProcessInterface {
 
@@ -126,28 +123,21 @@ public class Parser extends ProcessInterface {
                 IC++;
                 //Nuskaitomas resurso pranesime nurodytas failas.
                 SupervisorMemory supervisorMemory = (SupervisorMemory) resourceDistributor.get(SUPERVISOR_MEMORY);
-                Memory externalMemory = (Memory) resourceDistributor.get(EXTERNAL_MEMORY);
-                try {
-                    System.out.println(ANSI_BLUE + " ---------------> " + supervisorMemory.getFileList().get(0) + ANSI_RESET);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
+                String fileName = supervisorMemory.getFileList().get(0);
+                parseFile(fileName);
                 //Ar failas turi antrastę DATSEG ?
-                boolean isDataSegGood = true;
 
-                if(isDataSegGood) {
+                if(dataSegment.size()>0) {
                     //taip
                     //Supervizorinėje atmintyje išsaugomas užduoties duomenų segentas.
-
-                    boolean isCodeSegGood = true;
-                    if(isCodeSegGood)
+                    supervisorMemory.getDataSegs().put(fileName,dataSegment);
+                    if(codeSegment.size()>0)
                     {
                         IC = 0;
                         //Supervizorinėje atmintyje išsaugomas užduoties kodo segentas.
-
+                        supervisorMemory.getCodeSegs().put(fileName,codeSegment);
                         //Atlaisvinamas “Užduoties vykdymo parametrai supervizorinėje atmintyje” resursas.
-                        resourceDistributor.disengage(ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY);
+                        resourceDistributor.disengage(ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY,fileName);
                     }
                     else {
                         IC = 0;
@@ -163,23 +153,3 @@ public class Parser extends ProcessInterface {
         }
     }
 }
-
-// switch (IC)
-//        {
-//            case 0:
-//                IC++;
-//
-//                break;
-//            case 1:
-//                IC++;
-//
-//
-//                break;
-//            case 2:
-//
-//                break;
-//            case 3:
-//
-//
-//                break;
-//        }

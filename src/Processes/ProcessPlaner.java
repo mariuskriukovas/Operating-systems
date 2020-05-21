@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static Processes.ProcessEnum.Name.READ_FROM_INTERFACE;
+import static Tools.Constants.ANSI_BLACK;
+import static Tools.Constants.ANSI_RED;
 
 public class ProcessPlaner {
 
@@ -36,8 +38,9 @@ public class ProcessPlaner {
 
 
     public void runOperatingSystem(){
-        for(int i = 0; i<10; i++)
+        for(int i = 0; i<100000; i++)
         {
+            System.out.println(ANSI_RED + "Iteracija ---------------> " + i + ANSI_BLACK);
             plan();
         }
     }

@@ -1,7 +1,7 @@
 package Components.UI;
 
 
-import RealMachine.RealMachine;
+import Processes.RealMachine;
 
 import javax.swing.*;
 

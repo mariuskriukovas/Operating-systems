@@ -1,16 +1,21 @@
 package Processes;
 
 import Components.Memory;
-import RealMachine.RealMachine;
+import Resources.Resource;
 import Resources.ResourceDistributor;
 import Resources.ResourceEnum;
 import Tools.Constants;
+import Components.SupervisorMemory;
 import Tools.Word;
 
 import java.util.ArrayList;
 
-import static Processes.ProcessEnum.Name.JOB_TO_SWAP;
-import static Resources.ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY;
+import static Processes.MainProc.State.TASK_CREATED;
+import static Processes.ProcessEnum.Name.*;
+import static Processes.ProcessEnum.VIRTUAL_MACHINE_PRIORITY;
+import static Resources.ResourceEnum.Name.*;
+import static Tools.Constants.ANSI_BLUE;
+import static Tools.Constants.ANSI_RESET;
 
 public class JobToSwap extends ProcessInterface{
     //JobToSwap – užduoties patalpinimas išorinėje atmintyje
@@ -21,9 +26,9 @@ public class JobToSwap extends ProcessInterface{
     {
         super(father, ProcessEnum.State.BLOCKED, ProcessEnum.JOB_TO_SWAP_PRIORITY, JOB_TO_SWAP,processPlaner, resourceDistributor);
         this.realMachine = father;
-
     }
 
+    private static int TASKID = VIRTUAL_MACHINE_PRIORITY;
     private int IC = 0;
 
     @Override
@@ -39,18 +44,25 @@ public class JobToSwap extends ProcessInterface{
                 break;
             case 1:
                 IC++;
-                boolean doInternalMemoryHasSpace = true;
+                Resource task = resourceDistributor.get(TASK_PARAMETERS_IN_SUPERVISOR_MEMORY);
+                SupervisorMemory supervisorMemory = (SupervisorMemory) resourceDistributor.get(SUPERVISOR_MEMORY);
+                Memory external = (Memory) resourceDistributor.get(EXTERNAL_MEMORY);
+                String fileName = (String)task.get(0);
 
-                if(doInternalMemoryHasSpace) {
+                if(external.hasFreeSpace()) {
                     IC = 2;
                     //Išorinėje atmintyje įrašomi užduoties blokai.
                     //Sugeneruojamas unikalus uždoties ID.
                     //Atlaisvinamas “Užduotis būgne” resursas  su pranešimu " ID, Paruošta vykdyti"
-                    resourceDistributor.disengage(ResourceEnum.Name.TASK_IN_DRUM,  "1234567890");
+
+                    int externalMemoryBegin = external.getFreeSpaceBeginAddress();
+                    //load those commands to external memory
+                    uploadTaskToExternalMemory(fileName, externalMemoryBegin, supervisorMemory);
+                    resourceDistributor.disengage(ResourceEnum.Name.TASK_IN_DRUM,TASK_CREATED, fileName, TASKID++, externalMemoryBegin);
                 }else {
                     IC = 0;
                     // Atlaisvinamas “"Užduotis įvykdyta” resursas su pranešimu " Truksta išorinės atminties"
-                    resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  "Truksta isorines atminties");
+                    resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  "Truksta atminties");
                 }
                 break;
             case 2:
@@ -67,17 +79,19 @@ public class JobToSwap extends ProcessInterface{
     //    DATA_SEGMENT = 21760; 5500
     //    CODE_SEGMENT = 43520; AA00
 
-    public void uploadTaskToExternalMemory(String task,  int externalMemoryBegin)
+    public void uploadTaskToExternalMemory(String task,  int externalMemoryBegin, SupervisorMemory supervisorMemory)
     {
-        realMachine.getParser().parseFile(task);
+
         int dataSegBegin = Constants.DATA_SEGMENT + (externalMemoryBegin*256);
         int codeSegBegin = Constants.CODE_SEGMENT + (externalMemoryBegin*256);
 
-        //System.out.println("dataSegBegin-----> "+dataSegBegin/256);
-        //System.out.println("codeSegBegin-----> "+codeSegBegin/256);
+        System.out.println(ANSI_BLUE + "externalMemoryBegin  ---------------> " + externalMemoryBegin + ANSI_RESET);
+        System.out.println(ANSI_BLUE + "dataSegBegin  ---------------> " + dataSegBegin/256 + ANSI_RESET);
+        System.out.println(ANSI_BLUE + "codeSegBegin  ---------------> " + codeSegBegin/256 + ANSI_RESET);
 
-        ArrayList<Parser.Command> codeSegment = realMachine.getParser().getCodeSegment();
-        ArrayList<Parser.Command> dataSegment = realMachine.getParser().getDataSegment();
+
+        ArrayList<Parser.Command> codeSegment = supervisorMemory.getCodeSegs().get(task);
+        ArrayList<Parser.Command> dataSegment = supervisorMemory.getDataSegs().get(task);
 
         Memory externalMemory = realMachine.getExternalMemory();
 
@@ -104,6 +118,10 @@ public class JobToSwap extends ProcessInterface{
                 e.printStackTrace();
             }
         }
+
+        supervisorMemory.getCodeSegs().remove(task);
+        supervisorMemory.getDataSegs().remove(task);
+
     }
 
 }

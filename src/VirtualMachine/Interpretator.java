@@ -1,22 +1,23 @@
 package VirtualMachine;
 
 import Components.CPU;
-import RealMachine.RealMachine;
+import Processes.RealMachine;
 import Tools.Constants;
 import Tools.Exceptions;
 import Tools.Word;
 
 import java.math.BigInteger;
 
+import static Tools.Constants.SYSTEM_INTERRUPTION.*;
+
 public class Interpretator
 {
     private final CPU cpu;
-    private final RealMachine realMachine;
+    //private final RealMachine realMachine;
 
-    public Interpretator(RealMachine realMachine)
+    public Interpretator(CPU cpu)
     {
-        this.realMachine = realMachine;
-        this.cpu = realMachine.getCpu();
+        this.cpu = cpu;
     }
 
     public void execute(String command){
@@ -99,6 +100,7 @@ public class Interpretator
             cpu.decreaseSP();
             Word address = cpu.getSP().copy();
             Word value = cpu.getSS(address);
+            if(value==null)return;
             cpu.setRL(value);
         } catch (Exceptions.ProgramInteruptionException e) {
             e.printStackTrace();
@@ -253,11 +255,16 @@ public class Interpretator
         }
     }
 
-    private String getVirtualAddress() throws Exceptions.WrongAddressException {
+    public String getVirtualAddress() {
         Word address = cpu.getIC().copy();
         Word value = null;
-        value = cpu.getCS(address);
-        return value.getASCIIFormat().substring(2);
+        try {
+            value = cpu.getCS(address);
+            return value.getASCIIFormat().substring(2);
+        } catch (Exceptions.WrongAddressException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void JUMPA()
@@ -349,6 +356,7 @@ public class Interpretator
             String virtualAddress = getVirtualAddress();
             Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
             Word value = cpu.getDS(address);
+            if(value==null)return;
             cpu.setRL(value);
         }catch (Exceptions.ProgramInteruptionException e){
             e.printStackTrace();
@@ -381,32 +389,13 @@ public class Interpretator
 
     //   getPrintLine ---> [DS:ADDR]
     private void GET(){
-
         System.out.println("GET()");
-        try {
-            String virtualAddress = getVirtualAddress();
-
-            Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
-            realMachine.getPrintLine().read(address);
-
-        }catch (Exceptions.ProgramInteruptionException e){
-            e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
-            cpu.setPI(interruption);
-        }
+        cpu.setSI(PRINTLINE_GET);
     }
     //  [DS:ADDR] ---> getPrintLine
     private void PUT(){
         System.out.println("PUT()");
-        try {
-            String virtualAddress = getVirtualAddress();
-            Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
-            realMachine.getPrintLine().print(address);
-        }catch (Exceptions.ProgramInteruptionException e){
-            e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
-            cpu.setPI(interruption);
-        }
+        cpu.setSI(PRINTLINE_PUT);
     }
     private void HALT(){
         System.out.println("HALT()");
@@ -416,8 +405,7 @@ public class Interpretator
     // registers ---> getPrintLine
     private void PRINTR(){
         System.out.println("PRINTR()");
-        realMachine.getPrintLine().printRegisters();
+        cpu.setSI(PRINTLINE_PUT_R);
+        //realMachine.getPrintLine().printRegisters();
     }
-
-
 }

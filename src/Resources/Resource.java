@@ -2,12 +2,15 @@ package Resources;
 
 import Processes.ProcessInterface;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 
 public  class Resource {
     private final ProcessInterface fatherProcess;
     private final ResourceEnum.Name name;
     private final ResourceEnum.Type type;
+    private final Deque<ArrayList<Object>> elements;
 
     private boolean isFree = false;
 
@@ -31,7 +34,7 @@ public  class Resource {
 
         fatherProcess.getResourceDistributor().addResource(this);
             fatherProcess.addResource(this);
-
+            elements = new ArrayDeque<>(10);
             elementList = new ArrayList<>(100);
             waitingList = new ArrayList<>(100);
     }
@@ -46,6 +49,11 @@ public  class Resource {
         elementList.clear();
         System.err.println("toBeImplemented");
         //deletemyself
+    }
+
+    public Object get(int i)
+    {
+        return elements.getFirst().get(i);
     }
 
     public void setAvailability(boolean free) {
@@ -65,6 +73,11 @@ public  class Resource {
     }
 
     public ArrayList<Object> getElementList() {
-        return elementList;
+        return elements.getFirst();
     }
+
+    public Deque<ArrayList<Object>> getElements() {
+        return elements;
+    }
+
 }

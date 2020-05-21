@@ -31,7 +31,7 @@ public class InternalMemory {
             public void actionPerformed(ActionEvent actionEvent) {
                 String input = blockNumberInput.getText();
                 Integer blockNumber = parseInt(input);
-                if(blockNumber != null && isNumeric(input) && blockNumber <= 16 && blockNumber >= 0) {
+                if(blockNumber != null && isNumeric(input) && blockNumber <= 1100 && blockNumber >= 0) {
                     try {
                         setTable(blockNumber);
                     } catch (Exception e) {

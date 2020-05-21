@@ -1,13 +1,14 @@
 package Processes;
 
 import Components.CPU;
-import RealMachine.RealMachine;
+import Components.UI.OSFrame;
 import Resources.Resource;
 import Resources.ResourceDistributor;
 import Resources.ResourceEnum;
-import Tools.SupervisorMemory;
+import Components.SupervisorMemory;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
@@ -21,7 +22,6 @@ import static Tools.Constants.*;
 public class ReadFromInterface extends ProcessInterface{
 
     private final RealMachine realMachine;
-    private final CPU cpu;
     private final JTextArea inputScreen;
     private final JTextArea outputScreen;
     private final JButton button;
@@ -47,10 +47,11 @@ public class ReadFromInterface extends ProcessInterface{
 
         // old
         this.realMachine = father;
-        this.cpu = realMachine.getCpu();
-        inputScreen = cpu.getRMScreen().getConsole();
-        outputScreen = cpu.getRMScreen().getScreen();
-        button = cpu.getRMScreen().getENTRYButton();
+
+        inputScreen = realMachine.getScreen().getScreenForRealMachine().getConsole();
+        outputScreen = realMachine.getScreen().getScreenForRealMachine().getScreen();
+        button = realMachine.getScreen().getScreenForRealMachine().getENTRYButton();
+
         button.addActionListener(UserInput);
         //
     }
@@ -66,12 +67,7 @@ public class ReadFromInterface extends ProcessInterface{
     private ActionListener UserInput = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if(teest==0)
-            {
-                resourceDistributor.specialDarkMagic(ResourceEnum.Name.USER_INPUT, Situation.CREATEVM);
-            }else {
-                resourceDistributor.specialDarkMagic(ResourceEnum.Name.USER_INPUT, Situation.RUNALL);
-            }
+            readUserInput();
             synchronized (ProcessPlaner.looop)
             {
                 ProcessPlaner.looop.notifyAll();
@@ -92,7 +88,9 @@ public class ReadFromInterface extends ProcessInterface{
             outputScreen.append(command + " ----------------- > " + filename+'\n');
             resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.CREATEVM, inputScreen.getText());
         }else if(command.equalsIgnoreCase("RUNALL")) {
-            outputScreen.append(command + " ----------------- > ");
+            //OSFrame.TickMode = true;
+            outputScreen.append(command + " ----------------- > "+'\n');
+            outputScreen.setForeground(Color.BLACK);
             resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.RUNALL);
         } else if(command.equalsIgnoreCase("TICKMODE")) {
             String action = lines.get(1);
@@ -103,9 +101,6 @@ public class ReadFromInterface extends ProcessInterface{
                 outputScreen.append(command + " ----------------- > " + action+'\n');
                 resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.TICKMODEOFF);
             }
-        } else if(command.equalsIgnoreCase("TEST")) {
-                outputScreen.append(command + " ----------------- > " + command+'\n');
-                resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.TEST);
         } else if(command.equalsIgnoreCase("OSEND")) {
                 outputScreen.append(command + " ----------------- > " + command+'\n');
                 resourceDistributor.disengage(ResourceEnum.Name.USER_INPUT, Situation.OSEND);
@@ -143,7 +138,6 @@ public class ReadFromInterface extends ProcessInterface{
                         //Atlaisvinamas resursas “Pradėti vykdymą”. Skirtas procesui MainProc
                         System.out.println(ANSI_BLUE + " --------------->2"+ ANSI_BLACK);
                         resourceDistributor.disengage(ResourceEnum.Name.START_EXECUTION);
-
                         break;
                     case CREATEVM:
                         //Blokavimasis laukiant supervizorinės atminties resurso
@@ -151,11 +145,12 @@ public class ReadFromInterface extends ProcessInterface{
                         //Blokavimasis laukiant supervizorinės atminties resurso
                         SupervisorMemory supervisorMemory = (SupervisorMemory)resourceDistributor.get(ResourceEnum.Name.SUPERVISOR_MEMORY);
                         //Failo pavadinimo nuskaitymas
-                        supervisorMemory.getFileList().add("prog3.txt");
+                        supervisorMemory.getFileList().add("prog1.txt");
                         //Atlaisvinamas resursas “Užduotis supervizorinėje atmintyje”. Skirtas procesui Parser
                         resourceDistributor.disengage(ResourceEnum.Name.TASK_IN_SUPERVISOR_MEMORY);
                         break;
                     case TICKMODEON:
+
                         break;
                     case TICKMODEOFF:
                         break;
@@ -171,11 +166,12 @@ public class ReadFromInterface extends ProcessInterface{
             case 3:
                 IC=0;
                 message = (String)resourceDistributor.get(ResourceEnum.Name.TASK_COMPLETED).getElementList().toString();
+                outputScreen.setForeground(Color.BLUE);
+                outputScreen.append(message + '\n');
                 System.out.println(ANSI_RED + "TURIATEITIIKICIA --------------->" + message + teest + ANSI_BLACK);
                 teest++;
                 break;
         }
-
 
 //        if(command.equalsIgnoreCase("CREATEVM")) {
 //            String filename = lines.get(1).replace("\"", "");
@@ -195,9 +191,6 @@ public class ReadFromInterface extends ProcessInterface{
 //                outputScreen.append(command + " ----------------- > " + action+'\n');
 //                OSFrame.TickMode = false;
 //            }
-
-
-        System.out.println(ANSI_PURPLE + "iseejo is rekursijos"+ANSI_BLACK);
     }
 }
 

@@ -23,9 +23,7 @@ public class Memory extends Resource
     public Memory(ProcessInterface father, ResourceEnum.Name name, int blockNumber, int step)
     {
         super(father, name, ResourceEnum.Type.STATIC);
-
         this.step = step;
-        blockNumber = 256*2;
         this.blockNumber = blockNumber;
         this.wordNumber = blockNumber*Constants.BLOCK_LENGTH;
         memory = new Word[blockNumber][Constants.BLOCK_LENGTH];
@@ -48,10 +46,8 @@ public class Memory extends Resource
         }
     }
 
-    public int getFreeSpaceBeginAddress() throws Exception {
-        if(space.size()>0){
+    public int getFreeSpaceBeginAddress(){
             return space.pop();
-        }else throw new Exception("No space left");
     }
 
     public void cleanSpace(int begin) throws Exception {
@@ -60,6 +56,11 @@ public class Memory extends Resource
             cleanBlock(i);
         }
         space.push(begin);
+    }
+
+    public boolean hasFreeSpace()
+    {
+        return space.size() != 0;
     }
 
     public boolean checkIfBlockEmpty(int block) throws Exception {

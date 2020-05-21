@@ -15,8 +15,16 @@ public class Constants {
     public enum SYSTEM_INTERRUPTION
     {
         NONE,
-        TIMER_INTERUPTION,
+        TIMER,
+        SWAPING_SS,
+        SWAPING_DS,
+        SWAPING_CS,
+        PRINTLINE_GET,
+        PRINTLINE_PUT,
+        PRINTLINE_PUT_R,
+        PRINTLINE_READING_DONE,
         HALT,
+        ;
     }
 
     public enum PROGRAM_INTERRUPTION

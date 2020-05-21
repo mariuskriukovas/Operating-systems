@@ -19,7 +19,13 @@ public class ResourceEnum {
         LOADING_PACKAGE,
         TASK_IN_DRUM,
         START_EXECUTION,
-    }
+        FROM_LOADER,
+        FROM_PRINTLINE,
+        FROM_INTERUPT,
+        EXTERNAL_MEMORY_DISENGAGED,
+        FROM_SWAPING,
+        WAIT_UNTIL_DESTRUCTION,
+        }
 
     public enum Type {
         STATIC,

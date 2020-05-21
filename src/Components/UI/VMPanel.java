@@ -1,6 +1,7 @@
 package Components.UI;
 
-import RealMachine.RealMachine;
+import Components.CPU;
+import Processes.RealMachine;
 import Tools.Constants;
 import Tools.Constants.CONDITIONAL_MODE;
 import Tools.Word;
@@ -43,6 +44,7 @@ public class VMPanel {
     private JLabel SP;
     private JLabel IC;
     private JLabel PI;
+    private CPU cpu;
 
     private boolean ready = false;
 
@@ -77,17 +79,20 @@ public class VMPanel {
             public void actionPerformed(ActionEvent actionEvent) {
                 System.out.println("Refresh");
                 try {
-                    int ptr = (int) realMachine.getCpu().getPTR().getNumber();
-                    setStackSegment(realMachine.getInternalMemory().getBlock(ptr +1));
-                    setDataSegment(realMachine.getInternalMemory().getBlock(ptr +2));
-                    setCodeSegment(realMachine.getInternalMemory().getBlock(ptr +3));
+
+                    setStackSegment(realMachine.getInternalMemory().getBlock(cpu.getSS().getBlockFromAddress()));
+                    setDataSegment(realMachine.getInternalMemory().getBlock(cpu.getDS().getBlockFromAddress()));
+                    setCodeSegment(realMachine.getInternalMemory().getBlock(cpu.getCS().getBlockFromAddress()));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
-
         Tick.addKeyListener(enterListener);
+    }
+
+    public void setCpu(CPU cpu) {
+        this.cpu = cpu;
     }
 
     private KeyAdapter enterListener = new KeyAdapter() {

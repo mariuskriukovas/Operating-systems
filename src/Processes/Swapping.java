@@ -2,124 +2,184 @@ package Processes;
 
 import Components.CPU;
 import Components.Memory;
-import RealMachine.RealMachine;
 import Resources.Resource;
 import Resources.ResourceDistributor;
 import Resources.ResourceEnum;
+import Components.SupervisorMemory;
 import Tools.Word;
+import VirtualMachine.VirtualMachine;
 
 import static Processes.ProcessEnum.Name.SWAPPING;
 import static Tools.Constants.*;
 
 public class Swapping extends ProcessInterface {
 
-
-    private final CPU cpu;
     private final RealMachine realMachine;
     private final Memory internalMemory;
     private final Memory externalMemory;
+    private final SupervisorMemory supervisorMemory;
 
     public Swapping(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor) {
 
         super(father, ProcessEnum.State.BLOCKED,  ProcessEnum.SWAPPING_PRIORITY, SWAPPING,processPlaner, resourceDistributor);
 
+        new Resource(this, ResourceEnum.Name.FROM_SWAPING, ResourceEnum.Type.DYNAMIC);
         new Resource(this, ResourceEnum.Name.SWAPPING, ResourceEnum.Type.DYNAMIC);
 
         this.realMachine = father;
-        this.cpu = realMachine.getCpu();
         internalMemory = realMachine.getInternalMemory();
         externalMemory = realMachine.getExternalMemory();
-
-
+        supervisorMemory = realMachine.getSupervisorMemory();
     }
 
-
+    private int IC = 0;
     @Override
     public void executeTask() {
         super.executeTask();
-
-        resourceDistributor.ask(ResourceEnum.Name.SWAPPING,this);
-
+        VirtualMachine vm = null;
+        switch (IC) {
+            case 0:
+                IC++;
+                resourceDistributor.ask(ResourceEnum.Name.SWAPPING,this);
+                break;
+            case 1:
+                IC++;
+                Resource resource = resourceDistributor.get(ResourceEnum.Name.SWAPPING);
+                vm = (VirtualMachine)  resource.get(0);
+                CPU cpu = vm.getCpu();
+                String state = (String) resource.get(1);
+                int block = (int) resource.get(2);
+                switch (state)
+                {
+                    case "CS":
+                        swapCS(block, cpu);
+                        break;
+                    case "DS":
+                        swapDS(block, cpu);
+                        break;
+                    case "SS":
+                        swapSS(block, cpu);
+                        break;
+                }
+            case 2:
+                IC = 0;
+                resourceDistributor.disengage(ResourceEnum.Name.FROM_SWAPING);
+                break;
+        }
     }
 
-    public void setSS(int newSSBlock){
+
+    public void saveBlock(int internal, int external) {
         try {
-            //save old SS block values
-            realMachine.getLoader().saveSSBlock();
-            //save old SS register value back to memory table
-            long addressInMemoryTable = realMachine.getLoader().findSegmentInMemoryTable('S');
-            internalMemory.setWord(cpu.getSS(),addressInMemoryTable);
-            //find and set new SS block
-            int ptr = (int) cpu.getPTR().getNumber() * 256;
-            long adr = newSSBlock +  ptr + (STACK_SEGMENT/256);
-            cpu.setSS(internalMemory.getWord(adr));
-            //save cahanges in memory table
-            Word value =  cpu.getPTR().add(1);
-            value.setByte('S', 0);
-            internalMemory.setWord(value, adr);
-            //upload new SS block to internalMemory
-            realMachine.getLoader().uploadSSBlock();
-        }catch (Exception e)
-        {
+            Word[] block = internalMemory.getBlock(internal);
+            externalMemory.setBlock(external,block);
+        }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public void setDS(int newDSBlock){
+
+    private void swapSS(int newBlock, CPU cpu)
+    {
+        int internal = cpu.getSS().getBlockFromAddress();
+        int external = cpu.getExternalMemoryBegin() + cpu.getSS().getWordFromAddress();
+        saveBlock(internal, external);
+
+        long addr = findSegmentInMemoryTable('S', cpu);
         try {
-            //save old DS block values
-            realMachine.getLoader().saveDSBlock();
-            //save old DS register value back to memory table
-            long addressInMemoryTable = realMachine.getLoader().findSegmentInMemoryTable('D');
-            internalMemory.setWord(cpu.getDS(),addressInMemoryTable);
-            //find and set new DS block
-            int ptr = (int) cpu.getPTR().getNumber() * 256;
-            long adr = newDSBlock +  ptr + (DATA_SEGMENT/256);
-            cpu.setDS(internalMemory.getWord(adr));
-            //save cahanges in memory table
-            Word value =  cpu.getPTR().add(2);
-            value.setByte('D', 0);
-            internalMemory.setWord(value, adr);
-            //upload new DS block to internalMemory
-            realMachine.getLoader().uploadDSBlock();
-        }catch (Exception e)
-        {
+            internalMemory.setWord(new Word(external),addr);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        long ptr = cpu.getPTR().getNumber()*256;
+        external = (STACK_SEGMENT/256) + newBlock;
+        uploadBlock(ptr, internal, external, 'S');
+
+        int newSSvalue = internal*256 + external;
+        cpu.setSS(new Word(newSSvalue));
+    }
+
+    public void uploadBlock(long ptr, int internal, int external, char segment){
+        try {
+
+            long external_in_memory_table = internalMemory.getWord(ptr + external).getNumber();
+            Word[] ds = externalMemory.getBlock((int) external_in_memory_table);
+            internalMemory.setBlock(internal,ds);
+
+
+            Word value =  new Word(internal);
+            value.setByte(segment, 0);
+            internalMemory.setWord(value, ptr + external);
+
+        }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public void setCS(int newCSBlock){
+    private void swapDS(int newBlock, CPU cpu)
+    {
+        int internal = cpu.getDS().getBlockFromAddress();
+        int external = cpu.getExternalMemoryBegin() + cpu.getDS().getWordFromAddress();
+        saveBlock(internal, external);
+
+        long addr = findSegmentInMemoryTable('D', cpu);
         try {
-            //save old CS block values
-            realMachine.getLoader().saveCSBlock();
-            //save old CS register value back to memory table
-            long addressInMemoryTable = realMachine.getLoader().findSegmentInMemoryTable('C');
-            internalMemory.setWord(cpu.getCS(),addressInMemoryTable);
-            //find and set new CS block
-            int ptr = (int) cpu.getPTR().getNumber() * 256;
-            long adr = newCSBlock +  ptr + (CODE_SEGMENT/256);
-            cpu.setCS(internalMemory.getWord(adr));
-            //save cahanges in memory table
-            Word value =  cpu.getPTR().add(3);
-            value.setByte('C', 0);
-            internalMemory.setWord(value, adr);
-            //upload new CS block to internalMemory
-            realMachine.getLoader().uploadCSBlock();
-        }catch (Exception e)
-        {
+            internalMemory.setWord(new Word(external),addr);
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
+        long ptr = cpu.getPTR().getNumber()*256;
+        external = (DATA_SEGMENT/256) + newBlock;
+        uploadBlock(ptr, internal, external, 'D');
+
+
+        int newDSvalue = internal*256 + external;
+        cpu.setDS(new Word(newDSvalue));
+
     }
 
+
+    private void swapCS(int newBlock, CPU cpu)
+    {
+        int internal = cpu.getCS().getBlockFromAddress();
+        int external = cpu.getExternalMemoryBegin() + cpu.getCS().getWordFromAddress();
+        saveBlock(internal, external);
+
+        long addr = findSegmentInMemoryTable('C', cpu);
+        try {
+            internalMemory.setWord(new Word(external),addr);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        long ptr = cpu.getPTR().getNumber()*256;
+        external = (CODE_SEGMENT/256) + newBlock;
+        uploadBlock(ptr, internal, external, 'C');
+
+        int newCSvalue = internal*256 + external;
+        cpu.setCS(new Word(newCSvalue));
+
+    }
+
+
+    public long findSegmentInMemoryTable(int segment, CPU cpu){
+        Memory internalMemory = realMachine.getInternalMemory();
+        long ptr = cpu.getPTR().getNumber()*256;
+
+        for(int i = 0; i<256; i++){
+            try {
+                long virtualAddress = ptr+i;
+                int firstByte = internalMemory.getWord(virtualAddress).getByte(0);
+                if(firstByte == segment){
+                    return virtualAddress;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return  -1;
+    }
 }
 
-
-//try {
-//        System.out.println(" word  --- > " + word);
-//        System.out.println(" block   --- > " + block);
-//        System.out.println(" getSSB   --- > " + cpu.getSSB().getNumber());
-//        System.out.println(" virtual   --- > " + cpu.getSS().add(word).getHEXFormat());
-//        System.out.println(" get from internal   --- > " +  cpu.getFromInternalMemory(cpu.getSS().add(word)).getHEXFormat());
-//        } catch (Exception e) {
-//        e.printStackTrace();
-//        }

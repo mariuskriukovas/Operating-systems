@@ -1,13 +1,14 @@
 package Processes;
 
 import Components.CPU;
-import RealMachine.RealMachine;
 import Resources.Resource;
 import Resources.ResourceDistributor;
 import Resources.ResourceEnum;
 import Tools.Constants;
 import Tools.Exceptions;
+import Components.SupervisorMemory;
 import Tools.Word;
+import VirtualMachine.VirtualMachine;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -17,64 +18,89 @@ import java.util.List;
 
 import static Processes.ProcessEnum.Name.PRINT_LINE;
 import static Processes.ProcessEnum.PRINT_LINE_PRIORITY;
-import static Resources.ResourceEnum.Name.PRINTLINE;
+import static Resources.ResourceEnum.Name.*;
+import static Tools.Constants.*;
+import static Tools.Constants.SYSTEM_INTERRUPTION.PRINTLINE_PUT_R;
 import static java.util.stream.Collectors.toList;
 
 public class PrintLine extends ProcessInterface {
 
     public static final int MULTIPLE = 1;
     private final RealMachine realMachine;
-    private final CPU cpu;
     private final JTextArea inputScreen;
     private final JTextArea outputScreen;
     private final JButton button;
     private final Boolean waitingForInput = true;
+    private final SupervisorMemory supervisorMemory;
 
     public PrintLine(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor){
 
         super(father, ProcessEnum.State.BLOCKED, PRINT_LINE_PRIORITY, PRINT_LINE,processPlaner, resourceDistributor);
-
-
-
         this.realMachine = father;
-        this.cpu = realMachine.getCpu();
-        inputScreen = cpu.getRMScreen().getConsole();
-        outputScreen = cpu.getRMScreen().getScreen();
-        button = cpu.getRMScreen().getInputKey();
+        supervisorMemory = realMachine.getSupervisorMemory();
+        inputScreen = realMachine.getScreen().getScreenForRealMachine().getConsole();
+        outputScreen = realMachine.getScreen().getScreenForRealMachine().getScreen();
+        button = realMachine.getScreen().getScreenForRealMachine().getInputKey();
         button.addActionListener(InsertAction);
 
         new Resource(this, PRINTLINE, ResourceEnum.Type.DYNAMIC);
+        new Resource(this, FROM_PRINTLINE, ResourceEnum.Type.DYNAMIC);
 
 
     }
 
+
+    private int IC = 0;
 
     @Override
     public void executeTask() {
         super.executeTask();
 
-        resourceDistributor.ask(PRINTLINE,this);
-    }
-
-    public void print(Word address) {
-        String command  = "PRINT";
-        try {
-            for (int i = 0; i<16; i++){
-                String value =  cpu.getDS(new Word(address.getNumber()+i)).toString();
-                outputScreen.append(command + " ----------------- > " + value +'\n');
-            }
-        } catch (Exceptions.WrongAddressException e) {
-            e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
-            cpu.setPI(interruption);
+        switch (IC) {
+            case 0:
+                IC++;
+                resourceDistributor.ask(PRINTLINE,this);
+                break;
+            case 1:
+                IC=0;
+                Resource resource = resourceDistributor.get(PRINTLINE);
+                VirtualMachine virtualMachine = (VirtualMachine)resource.get(0);
+                List<Object> elements = (List<Object>)resource.get(1);
+                String state = elements.get(0).toString();
+                switch (state)
+                {
+                    case "INPUT":
+                        String address = (String) elements.get(1);
+                        outputScreen.append("TASK ID : " + virtualMachine.getTaskID() + " ");
+                        read();
+                        //turi pranesti apie ivedima ir jo laukti
+                        for (int i = 0; i<MULTIPLE; i++){
+                            int addr = Integer.parseInt(address, 16)+i;
+                            virtualMachine.getInputBuffer().add(virtualMachine.bufferElementsFactory(new Word(addr)
+                                    ,new Word(inputLines.get(i), Word.WORD_TYPE.NUMERIC)));
+                        }
+                        resourceDistributor.disengage(FROM_PRINTLINE);
+                        break;
+                    case "OUTPUT":
+                        String nextState = elements.get(1).toString();
+                        switch (nextState){
+                            case "WORDS":
+                                virtualMachine.getOutputBuffer().clear();
+                                break;
+                            case "REGISTERS":
+                                CPU cpu = virtualMachine.getCpu();
+                                outputScreen.append("TASK ID : " + virtualMachine.getTaskID()+'\n');
+                                outputScreen.append("RL ---> " +  cpu.getRL().toString()+'\n');
+                                outputScreen.append("RH ---> " +  cpu.getRH().toString()+'\n');
+                                outputScreen.append("C ---> " +  cpu.getC().toString()+'\n');
+                                break;
+                        }
+                        resourceDistributor.disengage(FROM_PRINTLINE);
+                        break;
+                }
+                break;
         }
-    }
 
-
-    public void printRegisters() {
-        outputScreen.append("RL ---> " +  cpu.getRL().toString() +'\n');
-        outputScreen.append("RH ---> " +  cpu.getRH().toString() +'\n');
-        outputScreen.append("C --->  " + cpu.getC().toString() +'\n');
     }
 
 
@@ -82,7 +108,7 @@ public class PrintLine extends ProcessInterface {
         outputScreen.append("HALT ---> " +  name +'\n');
     }
 
-    public void read(Word address) {
+    public void read() {
         realMachine.getScreen().getTabbs().setSelectedIndex(0);
         outputScreen.append("READ ---> "+MULTIPLE+ " SYMBOLS " + '\n');
         button.setVisible(true);
@@ -94,8 +120,8 @@ public class PrintLine extends ProcessInterface {
             }
         }
 
-        int destinationAddress = (int)address.getNumber();
-        writeToDataSegment(inputLines, destinationAddress);
+        //int destinationAddress = (int)address.getNumber();
+        //writeToDataSegment(inputLines, destinationAddress);
     }
 
     private List<String> inputLines;
@@ -152,25 +178,48 @@ public class PrintLine extends ProcessInterface {
                 .size() != 0;
     }
 
-    private void writeToDataSegment(List<String> lines, long address) {
-
-        try {
-            for (int i = 0; i < lines.size(); i++) {
-                String line = lines.get(i);
-                if (line.length() != 6) {
-                    while (line.length() != 6) {
-                        line = line + " ";
-                    }
-                }
-                System.out.println("line " + line);
-                int value = Integer.parseInt(line.replaceAll("\\s+",""),16);
-                cpu.setDS(new Word(address), new Word(value));
-            }
-        } catch (Exceptions.WrongAddressException e) {
-            e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
-            cpu.setPI(interruption);
-        }
-        System.out.println("Finish writing");
-    }
+//    private void writeToDataSegment(List<String> lines, long address) {
+//
+//        try {
+//            for (int i = 0; i < lines.size(); i++) {
+//                String line = lines.get(i);
+//                if (line.length() != 6) {
+//                    while (line.length() != 6) {
+//                        line = line + " ";
+//                    }
+//                }
+//                System.out.println("line " + line);
+//                int value = Integer.parseInt(line.replaceAll("\\s+",""),16);
+//                cpu.setDS(new Word(address), new Word(value));
+//            }
+//        } catch (Exceptions.WrongAddressException e) {
+//            e.printStackTrace();
+//            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+//            cpu.setPI(interruption);
+//        }
+//        System.out.println("Finish writing");
+//    }
 }
+
+
+//    public void print(Word address) {
+//        String command  = "PRINT";
+//
+////        try {
+////            for (int i = 0; i<16; i++){
+////                //String value =  cpu.getDS(new Word(address.getNumber()+i)).toString();
+////                //outputScreen.append(command + " ----------------- > " + value +'\n');
+////            }
+////        } catch (Exceptions.WrongAddressException e) {
+////            e.printStackTrace();
+////            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+////            cpu.setPI(interruption);
+////        }
+//    }
+//
+//
+//    public void printRegisters() {
+//        outputScreen.append("RL ---> " +  cpu.getRL().toString() +'\n');
+//        outputScreen.append("RH ---> " +  cpu.getRH().toString() +'\n');
+//        outputScreen.append("C --->  " + cpu.getC().toString() +'\n');
+//    }

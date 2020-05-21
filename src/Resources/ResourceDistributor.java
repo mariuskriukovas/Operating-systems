@@ -1,5 +1,6 @@
 package Resources;
 
+import Components.CPU;
 import Processes.ProcessInterface;
 import Processes.ProcessPlaner;
 
@@ -16,15 +17,12 @@ public class ResourceDistributor {
     private final ArrayList<ResourceEnum.Name> unusedList;
     private final ProcessPlaner planer;
 
-
     public ResourceDistributor(ProcessPlaner planer){
         this.planer = planer;
         resourcesList = new HashMap<ResourceEnum.Name, Resource>(10);
         waitingList = new HashMap<ResourceEnum.Name, ArrayList<ProcessInterface>>(10);
         unusedList = new ArrayList<ResourceEnum.Name>(10);
     }
-
-
 
     public void addResource(Resource resource){
         resourcesList.put(resource.getName(), resource);
@@ -58,8 +56,9 @@ public class ResourceDistributor {
             process.setPrepared(false);
             waitingList.get(resource).add(process);
         }
-        process.getProcessPlaner().plan();
+        //process.getProcessPlaner().plan();
     }
+
 
 
 
@@ -69,13 +68,6 @@ public class ResourceDistributor {
         return resourcesList.get(resource);
     }
 
-    public void specialDarkMagic(ResourceEnum.Name resource, Object... elements){
-        System.out.println("DISENGAGE : "+  resource);
-        resourcesList.get(resource).getElementList().clear();
-        resourcesList.get(resource).getElementList().addAll(Arrays.asList(elements));
-        resourcesList.get(resource).setAvailability(true);
-        distribute(resource);
-    }
 
 //    Atlaisvinti resursą. Šį primityvą kviečia procesas, kuris nori atlaisvinti jam
 //    nereikalingą resursą arba tiesiog perduoti pranešimą ar informaciją kitam procesui. Resurso
@@ -84,11 +76,10 @@ public class ResourceDistributor {
 
     public void disengage(ResourceEnum.Name resource, Object... elements){
         System.out.println("DISENGAGE : "+  resource);
-        resourcesList.get(resource).getElementList().clear();
-        resourcesList.get(resource).getElementList().addAll(Arrays.asList(elements));
+        resourcesList.get(resource).getElements().push(new ArrayList<>(Arrays.asList(elements)));
         resourcesList.get(resource).setAvailability(true);
         distribute(resource);
-        planer.plan();
+        //planer.plan();
     }
 
 
@@ -108,4 +99,5 @@ public class ResourceDistributor {
             x.setPrepared(true);
         });
     }
+
 }

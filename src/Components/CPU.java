@@ -2,16 +2,10 @@ package Components;
 
 import Components.UI.RMPanel;
 import Components.UI.VMPanel;
-import RealMachine.RealMachine;
-import Tools.Constants;
+import Processes.RealMachine;
 import Tools.Constants.*;
 import Tools.Exceptions;
-import Tools.SupervisorMemory;
 import Tools.Word;
-
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
 
 import static Tools.Constants.*;
 import static Tools.Constants.PROGRAM_INTERRUPTION.*;
@@ -44,19 +38,16 @@ public class CPU {
     private final RMPanel RMScreen;
     private final VMPanel VMScreen;
 
-    private final SupervisorMemory supervisorMemory;
+    public CPU(RealMachine realMachine, int id)
+    {
 
-    private final RealMachine realMachine;
-
-    public CPU(RealMachine realMachine){
-        this.realMachine = realMachine;
         this.externalMemory = realMachine.getExternalMemory();
         this.internalMemory = realMachine.getInternalMemory();
+
         RMScreen = realMachine.getScreen().getScreenForRealMachine();
         VMScreen = realMachine.getScreen().getScreenForVirtualMachine();
-        supervisorMemory = new SupervisorMemory(realMachine, this);
-        realMachine.getScreen().setVisible(true);
-        realMachine.getScreen().setReady(true);
+
+        externalMemoryBegin = id;
     }
 
 
@@ -84,6 +75,10 @@ public class CPU {
         internalMemory.setWord(word, PTR.add(block));
     }
 
+    public int getExternalMemoryBegin() {
+        return externalMemoryBegin;
+    }
+
     public Word getDS() {
         return DS;
     }
@@ -97,8 +92,7 @@ public class CPU {
     //----------------------------------------------------------------------------------
     // JM1256 IF (OLD_CS != NEW_CS) SI = 4 -> test()
     // AD12 -> test() if (SI + PI != 0 || TI == 0) MODE = 1
-
-    private void test(Segment segment, Word virtualAddress)
+    private boolean test(Segment segment, Word virtualAddress)
     {
         int desirableBlock = virtualAddress.getBlockFromAddress();
         int loadedBlock = -1;
@@ -107,7 +101,10 @@ public class CPU {
             case SS:
                 loadedBlock = SS.getWordFromAddress() - STACK_SEGMENT/256;
                 if(loadedBlock!=desirableBlock){
-                    realMachine.getSwapping().setSS(desirableBlock);
+
+                    setSI(SYSTEM_INTERRUPTION.SWAPING_SS);
+                    //realMachine.getSwapping().setSS(desirableBlock);
+                    return true;
                 }
                 break;
             case DS:
@@ -116,22 +113,34 @@ public class CPU {
                     System.out.println("getWORDFromAddress: "+loadedBlock);
                     System.out.println("getBlockFromAddress: "+virtualAddress.getBlockFromAddress());
                     System.out.println("ds : : "+DS);
-                    realMachine.getSwapping().setDS(desirableBlock);
-                    System.out.println("ds : : "+DS);
+
+                    setSI(SYSTEM_INTERRUPTION.SWAPING_DS);
+                    //realMachine.getSwapping().setDS(desirableBlock);
+                    return true;
+                    //System.out.println("ds : : "+DS);
                 }
                 break;
             case CS:
                 loadedBlock = CS.getWordFromAddress() - CODE_SEGMENT/256;
                 if(loadedBlock!=desirableBlock){
-                    realMachine.getSwapping().setCS(desirableBlock);
+
+                    setSI(SYSTEM_INTERRUPTION.SWAPING_CS);
+                    //realMachine.getSwapping().setCS(desirableBlock);
+                    return true;
                 }
                 break;
         }
+        return false;
     }
 
     public Word getSS(Word virtualAddress) throws Exceptions.WrongAddressException {
-        test(Segment.SS, virtualAddress);
-        long address = (PTR.getNumber() + 1) * 256 + virtualAddress.getWordFromAddress();
+
+        if(test(Segment.SS, virtualAddress)){
+            setRL(virtualAddress);
+            return null;
+        }
+
+        long address = SS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
         try {
             return internalMemory.getWord(address);
         } catch (Exception e) {
@@ -140,8 +149,13 @@ public class CPU {
     }
 
     public Word getDS(Word virtualAddress) throws Exceptions.WrongAddressException {
-        test(Segment.DS, virtualAddress);
-        long address = (PTR.getNumber() + 2) * 256 + virtualAddress.getWordFromAddress();
+        if(test(Segment.DS, virtualAddress))
+        {
+            setRL(virtualAddress);
+            return null;
+        }
+
+        long address = DS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
         try {
             return internalMemory.getWord(address);
         } catch (Exception e) {
@@ -150,29 +164,39 @@ public class CPU {
     }
 
     public Word getCS(Word virtualAddress) throws Exceptions.WrongAddressException {
-        test(Segment.CS, virtualAddress);
-        long address = (PTR.getNumber() + 3) * 256 + virtualAddress.getWordFromAddress();
+
+        if(test(Segment.CS, virtualAddress))
+        {
+            setRL(virtualAddress);
+            return null;
+        };
+
+        long address = CS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
         try {
-            return internalMemory.getWord(address);
+           return internalMemory.getWord(address);
         } catch (Exception e) {
             throw new Exceptions.WrongAddressException(WRONG_CS_BLOCK_ADDRESS,virtualAddress);
         }
     }
 
-    public Word getByVirtualAddress(Word virtualAddress) throws Exceptions.WrongAddressException{
+    public void getByVirtualAddress(Word virtualAddress) throws Exceptions.WrongAddressException{
         if(virtualAddress.getNumber()<DATA_SEGMENT) {
-            return getSS(virtualAddress);
+            getSS(virtualAddress);
         }else if(virtualAddress.getNumber()<CODE_SEGMENT) {
-            return getDS(virtualAddress);
+             getDS(virtualAddress);
         }else {
-            return getCS(virtualAddress);
+             getCS(virtualAddress);
         }
     }
 
     public void setSS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
         try {
-            test(Segment.SS, virtualAddress);
-            long address = (PTR.getNumber() + 1) * 256 + virtualAddress.getWordFromAddress();
+            if(test(Segment.SS, virtualAddress)){
+                setRL(virtualAddress);
+                return;
+            }
+
+            long address = SS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
             internalMemory.setWord(value, address);
         }catch (Exception e)
         {
@@ -181,8 +205,12 @@ public class CPU {
     }
 
     public void setDS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
-        test(Segment.DS, virtualAddress);
-        long address = (PTR.getNumber() + 2) * 256 + virtualAddress.getWordFromAddress();
+        if(test(Segment.DS, virtualAddress)){
+            setRL(virtualAddress);
+            return;
+        }
+
+        long address = DS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
         try {
             internalMemory.setWord(value, address);
         } catch (Exception e) {
@@ -191,8 +219,13 @@ public class CPU {
     }
 
     public void setCS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
-        test(Segment.CS, virtualAddress);
-        long address = (PTR.getNumber() + 3) * 256 + virtualAddress.getWordFromAddress();
+        if(test(Segment.CS, virtualAddress))
+        {
+            setRL(virtualAddress);
+            return;
+        }
+
+        long address = DS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
         try {
             internalMemory.setWord(value, address);
         } catch (Exception e) {
@@ -222,6 +255,29 @@ public class CPU {
     public void setDS(Word word) {
         DS.setWord(word);
         RMScreen.setDSRegister(DS);
+    }
+
+    private final int externalMemoryBegin;
+
+    public void refresh()
+    {
+        VMScreen.setCpu(this);
+        RMScreen.setPTRRegister(PTR);
+        RMScreen.setDSRegister(DS);
+        RMScreen.setSSRegister(SS);
+        RMScreen.setCSRegister(CS);
+
+        RMScreen.setTIRegister(TI);
+        RMScreen.setSIRegister(SI);
+        RMScreen.setMODERegister(MODE);
+
+        VMScreen.setStackPointer(SP);
+        VMScreen.setRHRegister(RH);
+        VMScreen.setRLRegister(RL);
+        VMScreen.setCRegister(C);
+        VMScreen.setPIRegister(PI);
+        VMScreen.setInstructionCounter(IC);
+
     }
 
     public void setSS(Word word) {
@@ -258,10 +314,6 @@ public class CPU {
     public void setTI(int ti) {
         TI = ti;
         RMScreen.setTIRegister(TI);
-    }
-
-    public SupervisorMemory getSupervisorMemory() {
-        return supervisorMemory;
     }
 
         public PROGRAM_INTERRUPTION getPI() {
@@ -345,11 +397,12 @@ public class CPU {
         }
     }
 
-    public void increaseIC() throws Exceptions.InstructionPointerException {
+    public void increaseIC() {
         try {
             setIC(IC.add(1));
         } catch (Exception e) {
-            throw new Exceptions.InstructionPointerException(WRONG_IC);
+            System.err.println(e.getStackTrace());
+            //throw new Exceptions.InstructionPointerException(WRONG_IC);
         }
     }
 
@@ -388,81 +441,10 @@ public class CPU {
         return internalMemory.getWord(address);
     }
 
-
     public void setMODE(SYSTEM_MODE flag) {
         RMScreen.setMODERegister(flag);
         MODE = flag;
     }
 
-    private final Deque<Object> process = new ArrayDeque<Object>();
-
-    private void checkProcess(Object flag){
-        boolean isSystemProcess = Arrays.stream(Constants.PROCESS.values()).anyMatch(x->x == flag);
-//        System.out.println(flag +" "+  isSystemProcess + " "+ process.size());
-        if(MODE!=SYSTEM_MODE.SUPERVISOR_MODE)
-        {
-            if(isSystemProcess){
-                setMODE(SYSTEM_MODE.SUPERVISOR_MODE);
-            }
-        }else {
-            if(!isSystemProcess){
-                setMODE(SYSTEM_MODE.USER_MODE);
-            }
-        }
-    }
-
-    public void showProcess(Object flag) {
-        checkProcess(flag);
-        process.push(flag);
-        RMScreen.setActiveProcess(flag.toString());
-    }
-
-    public void showPreviousProcess() {
-        process.pop();
-        Object flag = process.getFirst();
-        checkProcess(flag);
-        RMScreen.setActiveProcess(flag.toString());
-    }
-
-
-
-    public VMPanel getVMScreen() {
-        return VMScreen;
-    }
-
-    public RMPanel getRMScreen() {
-        return RMScreen;
-    }
-
-
-    public void setActiveProcess(String process){
-        RMScreen.setActiveProcess(process);
-    }
-
-    public Memory getInternalMemory() {
-        return internalMemory;
-    }
-
-    public Memory getExternalMemory() {
-        return externalMemory;
-    }
 }
 
-// Procesu matematika
-//• SWAPING atsakingas uz svapingo mechanizmo palaikyma
-
-
-
-// Procesu matematika
-//
-//• StartStop – šakninis procesas, sukuriantis bei naikinantis sisteminius procesus ir resursus.
-//• ReadFromInterface – užduoties nuskaitymo iš įvedimo srauto procesas
-//• JCL – užduoties programos, jos antraštės išskyrimas iš užduoties, ir jų organizavimas kaip resursu
-//• JobToSwap – užduoties patalpinimas išorinėje atmintyje
-//• MainProc – Procesas valdantis JobGorvernor procesus.
-//• JobGorvernor – virtualios mašinos proceso tėvas, tvarkantis virtualios mašinos proceso
-//        darbą
-// • Loader – iš išorinės atminties duomenys perkeliami į vartotojo atmintį
-//• Virtual Machine – procesas atsakantis už vartotojiškos programos vykdymą.
-//• Interrupt – procesas, apdorojantis virtualios mašinos pertraukimą sukėlusią situaciją.
-//• PrintLine – į išvedimo įrenginį pasiunčiama eilutė iš supervizorinės atminties.

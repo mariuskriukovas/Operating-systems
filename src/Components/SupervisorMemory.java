@@ -1,9 +1,13 @@
-package Tools;
+package Components;
 
 import Components.CPU;
+import Processes.Parser;
 import Processes.ProcessInterface;
 import Resources.Resource;
 import Resources.ResourceEnum;
+import Tools.Constants;
+import Tools.Exceptions;
+import Tools.Word;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,18 +17,29 @@ public class SupervisorMemory extends Resource
 {
 
     private long id = 0;
-    private final HashMap<Long, Registers> saveCPUState;
+    private final HashMap<Integer, Registers> saveRMState;
+    private final HashMap<Integer, Registers> saveVMState;
+    private final HashMap<Integer, Registers> taskState;
+
     private CPU cpu;
     private final ArrayList<String> fileNames;
 
-    public SupervisorMemory(ProcessInterface father, CPU cpu){
+    private final HashMap<String, ArrayList<Parser.Command>> dataSegs;
+    private final HashMap<String, ArrayList<Parser.Command>> codeSegs;
+
+
+
+    public SupervisorMemory(ProcessInterface father){
         super(father, ResourceEnum.Name.SUPERVISOR_MEMORY, ResourceEnum.Type.STATIC);
         setAvailability(true);
 
         fileNames = new ArrayList<String>(10);
+        dataSegs = new HashMap<>(100);
+        codeSegs = new HashMap<>(100);
 
-        this.cpu = cpu;
-        saveCPUState = new HashMap<>(100);
+        saveRMState = new HashMap<>(100);
+        saveVMState = new HashMap<>(100);
+        taskState = new HashMap<>(100);
     }
 
     public ArrayList<String> getFileList()
@@ -32,36 +47,22 @@ public class SupervisorMemory extends Resource
        return fileNames;
     }
 
-
-    private long generateID(){
-        id++;
-        return id;
+    public HashMap<String, ArrayList<Parser.Command>> getDataSegs() {
+        return dataSegs;
+    }
+    public HashMap<String, ArrayList<Parser.Command>> getCodeSegs() {
+        return codeSegs;
     }
 
-    public long saveVMRegisters(){
-        long id = generateID();
-        saveCPUState.put(id, new Registers(Type.VM));
-        return id;
+
+
+    public void saveTaskState(int taskID){
+      // taskState.put(taskID, new Registers(Type.ALL));
     }
 
-    public long saveRMRegisters(){
-        long id = generateID();
-        saveCPUState.put(id, new Registers(Type.RM));
-        return id;
+    public void restoreTaskState(int taskID){
+       // taskState.get(taskID).restoreCPUState();
     }
-
-    public long saveAllRegisters(){
-        long id = generateID();
-        saveCPUState.put(id, new Registers(Type.ALL));
-        return id;
-    }
-
-    public void restoreRegisters(long id){
-        Registers r = saveCPUState.get(id);
-        r.restoreCPUState();
-        saveCPUState.remove(id);
-    }
-
 
     enum Type{
         RM,
@@ -77,7 +78,7 @@ public class SupervisorMemory extends Resource
 
     class Registers{
 
-        private  Word IC = null;
+        private Word IC = null;
         private  Word SP = null;
         private  Word RH = null;
         private  Word RL = null;
@@ -91,7 +92,6 @@ public class SupervisorMemory extends Resource
         private Constants.SYSTEM_INTERRUPTION SI;
 
         private final Type type;
-
 
         Registers(Type type){
             this.type = type;
