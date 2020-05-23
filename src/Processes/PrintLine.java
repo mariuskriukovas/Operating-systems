@@ -18,6 +18,9 @@ import static Processes.ProcessEnum.Name.PRINT_LINE;
 import static Processes.ProcessEnum.PRINT_LINE_PRIORITY;
 import static Resources.ResourceEnum.Name.FROM_PRINTLINE;
 import static Resources.ResourceEnum.Name.PRINTLINE;
+import static Resources.ResourceEnum.Type.*;
+import static Tools.Word.WORD_TYPE.NUMERIC;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
 public class PrintLine extends ProcessInterface {
@@ -40,8 +43,8 @@ public class PrintLine extends ProcessInterface {
         button = realMachine.getScreen().getScreenForRealMachine().getInputKey();
         button.addActionListener(InsertAction);
 
-        new Resource(this, PRINTLINE, ResourceEnum.Type.DYNAMIC);
-        new Resource(this, FROM_PRINTLINE, ResourceEnum.Type.DYNAMIC);
+        new Resource(this, PRINTLINE, DYNAMIC);
+        new Resource(this, FROM_PRINTLINE, DYNAMIC);
 
 
     }
@@ -69,11 +72,10 @@ public class PrintLine extends ProcessInterface {
                         String address = (String) elements.get(1);
                         outputScreen.append("TASK ID : " + virtualMachine.getTaskID() + " ");
                         read();
-                        //turi pranesti apie ivedima ir jo laukti
                         for (int i = 0; i < MULTIPLE; i++) {
                             int addr = Integer.parseInt(address, 16) + i;
                             virtualMachine.getInputBuffer().add(virtualMachine.bufferElementsFactory(new Word(addr)
-                                    , new Word(inputLines.get(i), Word.WORD_TYPE.NUMERIC)));
+                                    , new Word(inputLines.get(i), NUMERIC)));
                         }
                         resourceDistributor.disengage(FROM_PRINTLINE);
                         break;
@@ -115,9 +117,6 @@ public class PrintLine extends ProcessInterface {
                 e.printStackTrace();
             }
         }
-
-        //int destinationAddress = (int)address.getNumber();
-        //writeToDataSegment(inputLines, destinationAddress);
     }
 
     private List<String> inputLines;
@@ -125,7 +124,7 @@ public class PrintLine extends ProcessInterface {
     private ActionListener InsertAction = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-            List<String> lines = Arrays.asList(inputScreen.getText().split("\\n"));
+            List<String> lines = asList(inputScreen.getText().split("\\n"));
             if (validation(lines)) {
                 System.out.println(lines);
                 try {

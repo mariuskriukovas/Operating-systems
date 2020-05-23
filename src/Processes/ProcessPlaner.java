@@ -1,40 +1,41 @@
 package Processes;
 
+import Processes.ProcessEnum.State;
+
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static Processes.ProcessEnum.Name.READ_FROM_INTERFACE;
 import static Tools.Constants.ANSI_BLACK;
 import static Tools.Constants.ANSI_RED;
+import static java.util.Comparator.comparing;
 
 public class ProcessPlaner {
 
     public static Integer looop = 1;
 
     private final ArrayList<ProcessInterface> processList;
+    private Integer nextStep = 0;
 
     public ProcessPlaner() {
         processList = new ArrayList<ProcessInterface>(10);
     }
 
     public ProcessInterface findActive() {
-        return processList.stream().filter(x -> x.isActive())
+        return processList.stream().filter(ProcessInterface::isActive)
                 .findFirst()
                 .get();
     }
 
     public List<ProcessInterface> findPrepared() {
         List<ProcessInterface> preparedList = processList.stream()
-                .filter(x -> x.isPrepared())
+                .filter(ProcessInterface::isPrepared)
                 .collect(Collectors.toList());
         return preparedList.stream()
-                .sorted(Comparator.comparing(ProcessInterface::getPriority))
+                .sorted(comparing(ProcessInterface::getPriority))
                 .collect(Collectors.toList());
     }
-
-    private Integer nextStep = 0;
 
     public void runOperatingSystem() {
         for (int i = 0; i < 100000; i++) {
@@ -42,7 +43,6 @@ public class ProcessPlaner {
             plan();
         }
     }
-
 
     public void plan() {
         System.out.println("PLAN : ");
@@ -75,12 +75,12 @@ public class ProcessPlaner {
         }
     }
 
-    private List<ProcessInterface> getStateList(ProcessEnum.State state) {
+    private List<ProcessInterface> getStateList(State state) {
         List<ProcessInterface> preparedList = processList.stream()
                 .filter(x -> x.getState() == state)
                 .collect(Collectors.toList());
         return preparedList.stream()
-                .sorted(Comparator.comparing(ProcessInterface::getPriority))
+                .sorted(comparing(ProcessInterface::getPriority))
                 .collect(Collectors.toList());
     }
 
