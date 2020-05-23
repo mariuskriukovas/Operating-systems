@@ -1,117 +1,116 @@
 package VirtualMachine;
 
 import Components.CPU;
-import Processes.RealMachine;
 import Tools.Constants;
+import Tools.Constants.PROGRAM_INTERRUPTION;
 import Tools.Exceptions;
+import Tools.Exceptions.InstructionPointerException;
+import Tools.Exceptions.ProgramInteruptionException;
+import Tools.Exceptions.WrongAddressException;
 import Tools.Word;
 
 import java.math.BigInteger;
 
-import static Tools.Constants.SYSTEM_INTERRUPTION.*;
+import static Tools.Constants.CONDITIONAL_MODE.EQUAL;
+import static Tools.Constants.CONDITIONAL_MODE.LESS;
+import static Tools.Constants.CONDITIONAL_MODE.MORE;
+import static Tools.Constants.PROGRAM_INTERRUPTION.DIVISION_BY_ZERO;
+import static Tools.Constants.SYSTEM_INTERRUPTION.HALT;
+import static Tools.Constants.SYSTEM_INTERRUPTION.PRINTLINE_GET;
+import static Tools.Constants.SYSTEM_INTERRUPTION.PRINTLINE_PUT;
+import static Tools.Constants.SYSTEM_INTERRUPTION.PRINTLINE_PUT_R;
+import static Tools.Word.WORD_TYPE.NUMERIC;
+import static java.lang.Long.parseLong;
 
-public class Interpretator
-{
+public class Interpretator {
     private final CPU cpu;
-    //private final RealMachine realMachine;
 
-    public Interpretator(CPU cpu)
-    {
+    public Interpretator(CPU cpu) {
         this.cpu = cpu;
     }
 
-    public void execute(String command){
-        if(command.contains("ADD")) {
+    public void execute(String command) {
+        if (command.contains("ADD")) {
             ADD();
-        }else if(command.contains("SUB")){
+        } else if (command.contains("SUB")) {
             SUB();
-        }else if(command.contains("MUL")){
+        } else if (command.contains("MUL")) {
             MUL();
-        }else if(command.contains("DIV")){
+        } else if (command.contains("DIV")) {
             DIV();
-        }else if(command.contains("CMR")){
+        } else if (command.contains("CMR")) {
             CMR();
-        }else if(command.contains("CM")){
+        } else if (command.contains("CM")) {
             CM();
-        }else if(command.contains("JUMPR")){
+        } else if (command.contains("JUMPR")) {
             JUMPR();
-        }else if(command.contains("JUMP")){
+        } else if (command.contains("JUMP")) {
             JUMP();
-        }else if(command.contains("JAR")){
+        } else if (command.contains("JAR")) {
             JAR();
-        }else if(command.contains("JA")){
+        } else if (command.contains("JA")) {
             JA();
-        }else if(command.contains("JBR")){
+        } else if (command.contains("JBR")) {
             JBR();
-        }else if(command.contains("JB")){
+        } else if (command.contains("JB")) {
             JB();
-        }else if(command.contains("JER")){
+        } else if (command.contains("JER")) {
             JER();
-        }else if(command.contains("JE")){
+        } else if (command.contains("JE")) {
             JE();
-        }else if(command.contains("PUSH")){
+        } else if (command.contains("PUSH")) {
             PUSH();
-        }else if(command.contains("POP")){
+        } else if (command.contains("POP")) {
             POP();
-        }else if(command.contains("SWAP")){
+        } else if (command.contains("SWAP")) {
             SWAP();
-        }else if(command.contains("LB")){
+        } else if (command.contains("LB")) {
             LOADB();
-        }else if(command.contains("LW")){
+        } else if (command.contains("LW")) {
             LOADW();
-        }else if(command.contains("SV")){
+        } else if (command.contains("SV")) {
             SAVE();
-        }else if(command.contains("GT")){
+        } else if (command.contains("GT")) {
             GET();
-        }else if(command.contains("PT")){
+        } else if (command.contains("PT")) {
             PUT();
-        }else if(command.contains("HALT")){
+        } else if (command.contains("HALT")) {
             HALT();
-        }else if(command.contains("PRINTR")){
+        } else if (command.contains("PRINTR")) {
             PRINTR();
-        }else {
+        } else {
             System.out.print("Not found");
         }
     }
 
-    //    RL ---> value
-    //    SP ---> [SS:SP]
-    //    SP ---> SP+1
-    private void PUSH()
-    {
+    private void PUSH() {
         Word value = cpu.getRL().copy();
         Word address = cpu.getSP().copy();
         try {
-            cpu.setSS(address,value);
+            cpu.setSS(address, value);
             cpu.increaseSP();
-        } catch (Exceptions.ProgramInteruptionException e) {
+        } catch (ProgramInteruptionException e) {
             e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
     }
 
-    //    SP ---> [SS:SP]
-    //    SP ---> SP-1
-    //    value ---> RL
-    private void POP()
-    {
+    private void POP() {
         try {
             cpu.decreaseSP();
             Word address = cpu.getSP().copy();
             Word value = cpu.getSS(address);
-            if(value==null)return;
+            if (value == null) return;
             cpu.setRL(value);
-        } catch (Exceptions.ProgramInteruptionException e) {
+        } catch (ProgramInteruptionException e) {
             e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
     }
 
-
-    private void ADD()
-    {
+    private void ADD() {
         System.out.println("ADD()");
         try {
             POP();
@@ -119,25 +118,23 @@ public class Interpretator
             POP();
             long op2 = cpu.getRL().getNumber();
             long result = op1 + op2;
-            long manyF = Long.parseLong("ffffff",16);
+            long manyF = parseLong("ffffff", 16);
             if (result > manyF) {
-                //ADD to RX
                 long rl = (result % manyF);
                 cpu.setRL(new Word(rl));
-                long rh = (result /manyF);
+                long rh = (result / manyF);
                 cpu.setRH(new Word(rh));
-                cpu.setC(Constants.CONDITIONAL_MODE.MORE);
+                cpu.setC(MORE);
             } else {
                 cpu.setRL(new Word(result));
-                cpu.setC(Constants.CONDITIONAL_MODE.LESS);
+                cpu.setC(LESS);
             }
-        }catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private void SUB()
-    {
+
+    private void SUB() {
         System.out.println("SUB()");
         try {
             POP();
@@ -146,13 +143,12 @@ public class Interpretator
             long op2 = cpu.getRL().getNumber();
             long result = op1 - op2;
             cpu.setRL(new Word(result));
-        }catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private void MUL()
-    {
+
+    private void MUL() {
         System.out.println("MUL()");
         try {
             POP();
@@ -162,95 +158,84 @@ public class Interpretator
             BigInteger op1Big = new BigInteger(Long.toString(op1));
             BigInteger op2Big = new BigInteger(Long.toString(op2));
             BigInteger result = op1Big.multiply(op2Big);
-            BigInteger manyF = new BigInteger(Long.toString(Long.parseLong("ffffff",16)));
+            BigInteger manyF = new BigInteger(Long.toString(parseLong("ffffff", 16)));
 
-            if (result.compareTo(manyF)==1) {
-                //ADD to RX
-                manyF = new BigInteger(Long.toString(Long.parseLong("1000000",16)));
-                long rl = Long.parseLong(result.mod(manyF).toString());
+            if (result.compareTo(manyF) == 1) {
+                manyF = new BigInteger(Long.toString(parseLong("1000000", 16)));
+                long rl = parseLong(result.mod(manyF).toString());
                 cpu.setRL(new Word(rl));
-                long rh = Long.parseLong(result.divide(manyF).toString());
+                long rh = parseLong(result.divide(manyF).toString());
                 cpu.setRH(new Word(rh));
-                cpu.setC(Constants.CONDITIONAL_MODE.MORE);
+                cpu.setC(MORE);
             } else {
-                cpu.setRL(new Word(Long.parseLong(result.toString())));
-                cpu.setC(Constants.CONDITIONAL_MODE.LESS);
+                cpu.setRL(new Word(parseLong(result.toString())));
+                cpu.setC(LESS);
             }
-        }catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private void DIV()
-    {
+
+    private void DIV() {
         System.out.println("DIV()");
         try {
             POP();
             long op1 = cpu.getRL().getNumber();
             POP();
             long op2 = cpu.getRL().getNumber();
-            if(op2 == 0)throw new Exceptions.ProgramInteruptionException(Constants.PROGRAM_INTERRUPTION.DIVISION_BY_ZERO);
+            if (op2 == 0)
+                throw new ProgramInteruptionException(DIVISION_BY_ZERO);
             long div = op1 / op2;
             long mod = op1 % op2;
             cpu.setRL(new Word(div));
             cpu.setRH(new Word(mod));
-        } catch (Exceptions.ProgramInteruptionException e) {
+        } catch (ProgramInteruptionException e) {
             e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
     }
-    private void CM()
-    {
+
+    private void CM() {
         System.out.println("CM()");
-        // Stack ---> RL
         POP();
         Word w1 = cpu.getRL().copy();
-        // Stack ---> RL
         POP();
         Word w2 = cpu.getRL().copy();
-        if(w1.getNumber() == w2.getNumber())
-        {
-            cpu.setC(Constants.CONDITIONAL_MODE.EQUAL);
-        } else{
-            if(w1.getNumber() < w2.getNumber())
-            {
-                cpu.setC(Constants.CONDITIONAL_MODE.LESS);
-            }else {
-                cpu.setC(Constants.CONDITIONAL_MODE.MORE);
+        if (w1.getNumber() == w2.getNumber()) {
+            cpu.setC(EQUAL);
+        } else {
+            if (w1.getNumber() < w2.getNumber()) {
+                cpu.setC(LESS);
+            } else {
+                cpu.setC(MORE);
             }
         }
     }
-    private void CMR()
-    {
+
+    private void CMR() {
         System.out.println("CMR()");
-        //System.out.println("RH"+cpu.getRH());
-        //System.out.println("RL"+cpu.getRL());
-
         Word w1 = cpu.getRL();
-        Word w2 =  cpu.getRH();
-        if(w1.getNumber() == w2.getNumber())
-        {
-            cpu.setC(Constants.CONDITIONAL_MODE.EQUAL);
-        } else{
-            if(w1.getNumber() < w2.getNumber())
-            {
-                cpu.setC(Constants.CONDITIONAL_MODE.LESS);
-            }else {
-                cpu.setC(Constants.CONDITIONAL_MODE.MORE);
+        Word w2 = cpu.getRH();
+        if (w1.getNumber() == w2.getNumber()) {
+            cpu.setC(EQUAL);
+        } else {
+            if (w1.getNumber() < w2.getNumber()) {
+                cpu.setC(LESS);
+            } else {
+                cpu.setC(MORE);
             }
         }
     }
 
-    private void JUMP()
-    {
+    private void JUMP() {
         System.out.println("JUMP()");
         POP();
         try {
             cpu.setIC(cpu.getRL());
-        } catch (Exceptions.InstructionPointerException e) {
+        } catch (InstructionPointerException e) {
             e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
     }
@@ -261,86 +246,78 @@ public class Interpretator
         try {
             value = cpu.getCS(address);
             return value.getASCIIFormat().substring(2);
-        } catch (Exceptions.WrongAddressException e) {
+        } catch (WrongAddressException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private void JUMPA()
-    {
+    private void JUMPA() {
         System.out.println("JUMP()");
         try {
             String virtualAddress = getVirtualAddress();
-            cpu.setIC(new Word(virtualAddress, Word.WORD_TYPE.NUMERIC));
-        }catch (Exceptions.ProgramInteruptionException e){
+            cpu.setIC(new Word(virtualAddress, NUMERIC));
+        } catch (ProgramInteruptionException e) {
             e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
     }
-    private void JUMPR()
-    {
+
+    private void JUMPR() {
         System.out.println("JUMPR()");
         try {
             cpu.setIC(cpu.getRL());
-        } catch (Exceptions.ProgramInteruptionException e) {
+        } catch (ProgramInteruptionException e) {
             e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
     }
-    private void JA()
-    {
+
+    private void JA() {
         System.out.println("JA()");
-        if(cpu.getC() == Constants.CONDITIONAL_MODE.MORE)
-        {
+        if (cpu.getC() == MORE) {
             JUMPA();
         }
     }
-    private void JAR()
-    {
+
+    private void JAR() {
         System.out.println("JAR()");
-        if(cpu.getC() == Constants.CONDITIONAL_MODE.MORE)
-        {
-            JUMPR();
-        }
-    }
-    private void JB()
-    {
-        System.out.println("JB()");
-        if(cpu.getC() == Constants.CONDITIONAL_MODE.LESS)
-        {
-            JUMPA();
-        }
-    }
-    private void JBR()
-    {
-        System.out.println("JBR()");
-        if(cpu.getC() == Constants.CONDITIONAL_MODE.LESS)
-        {
-            JUMPR();
-        }
-    }
-    private void JE()
-    {
-        System.out.println("JE()");
-        if(cpu.getC() == Constants.CONDITIONAL_MODE.EQUAL)
-        {
-            JUMPA();
-        }
-    }
-    private void JER()
-    {
-        System.out.println("JER");
-        if(cpu.getC() == Constants.CONDITIONAL_MODE.EQUAL)
-        {
+        if (cpu.getC() == MORE) {
             JUMPR();
         }
     }
 
-    private void SWAP()
-    {
+    private void JB() {
+        System.out.println("JB()");
+        if (cpu.getC() == LESS) {
+            JUMPA();
+        }
+    }
+
+    private void JBR() {
+        System.out.println("JBR()");
+        if (cpu.getC() == LESS) {
+            JUMPR();
+        }
+    }
+
+    private void JE() {
+        System.out.println("JE()");
+        if (cpu.getC() == EQUAL) {
+            JUMPA();
+        }
+    }
+
+    private void JER() {
+        System.out.println("JER");
+        if (cpu.getC() == EQUAL) {
+            JUMPR();
+        }
+    }
+
+    private void SWAP() {
         System.out.println("SWAP()");
         Word rh = new Word(cpu.getRH().getNumber());
         cpu.setRH(cpu.getRL());
@@ -348,64 +325,59 @@ public class Interpretator
 
     }
 
-    //    RL ---> value
-    private void LOADB(){
-
+    private void LOADB() {
         System.out.println("LOADB()");
         try {
             String virtualAddress = getVirtualAddress();
-            Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+            Word address = new Word(virtualAddress, NUMERIC);
             Word value = cpu.getDS(address);
-            if(value==null)return;
+            if (value == null) return;
             cpu.setRL(value);
-        }catch (Exceptions.ProgramInteruptionException e){
+        } catch (ProgramInteruptionException e) {
             e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
     }
-    //    RL ---> value
+
     private void LOADW() {
         System.out.println("LOADW()");
         LOADB();
         String value = cpu.getRL().getASCIIFormat();
-        cpu.setRL(new Word(value, Word.WORD_TYPE.NUMERIC));
+        cpu.setRL(new Word(value, NUMERIC));
     }
 
-    //    RL ---> [DS:SAVE ADDR]
-    private void SAVE(){
+    private void SAVE() {
         System.out.println("SAVE()");
         try {
             String virtualAddress = getVirtualAddress();
-            Word address =  new Word(virtualAddress, Word.WORD_TYPE.NUMERIC);
+            Word address = new Word(virtualAddress, NUMERIC);
             Word value = cpu.getRL().copy();
-            cpu.setDS(address,value);
-        }catch (Exceptions.ProgramInteruptionException e){
+            cpu.setDS(address, value);
+        } catch (ProgramInteruptionException e) {
             e.printStackTrace();
-            Constants.PROGRAM_INTERRUPTION interruption =  e.getReason();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
     }
 
-    //   getPrintLine ---> [DS:ADDR]
-    private void GET(){
+    private void GET() {
         System.out.println("GET()");
         cpu.setSI(PRINTLINE_GET);
     }
-    //  [DS:ADDR] ---> getPrintLine
-    private void PUT(){
+
+    private void PUT() {
         System.out.println("PUT()");
         cpu.setSI(PRINTLINE_PUT);
     }
-    private void HALT(){
+
+    private void HALT() {
         System.out.println("HALT()");
-        cpu.setSI(Constants.SYSTEM_INTERRUPTION.HALT);
+        cpu.setSI(HALT);
     }
 
-    // registers ---> getPrintLine
-    private void PRINTR(){
+    private void PRINTR() {
         System.out.println("PRINTR()");
         cpu.setSI(PRINTLINE_PUT_R);
-        //realMachine.getPrintLine().printRegisters();
     }
 }

@@ -1,12 +1,10 @@
 package Processes;
 
 import Components.CPU;
+import Components.SupervisorMemory;
 import Resources.Resource;
 import Resources.ResourceDistributor;
 import Resources.ResourceEnum;
-import Tools.Constants;
-import Tools.Exceptions;
-import Components.SupervisorMemory;
 import Tools.Word;
 import VirtualMachine.VirtualMachine;
 
@@ -18,9 +16,8 @@ import java.util.List;
 
 import static Processes.ProcessEnum.Name.PRINT_LINE;
 import static Processes.ProcessEnum.PRINT_LINE_PRIORITY;
-import static Resources.ResourceEnum.Name.*;
-import static Tools.Constants.*;
-import static Tools.Constants.SYSTEM_INTERRUPTION.PRINTLINE_PUT_R;
+import static Resources.ResourceEnum.Name.FROM_PRINTLINE;
+import static Resources.ResourceEnum.Name.PRINTLINE;
 import static java.util.stream.Collectors.toList;
 
 public class PrintLine extends ProcessInterface {
@@ -33,9 +30,9 @@ public class PrintLine extends ProcessInterface {
     private final Boolean waitingForInput = true;
     private final SupervisorMemory supervisorMemory;
 
-    public PrintLine(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor){
+    public PrintLine(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor resourceDistributor) {
 
-        super(father, ProcessEnum.State.BLOCKED, PRINT_LINE_PRIORITY, PRINT_LINE,processPlaner, resourceDistributor);
+        super(father, ProcessEnum.State.BLOCKED, PRINT_LINE_PRIORITY, PRINT_LINE, processPlaner, resourceDistributor);
         this.realMachine = father;
         supervisorMemory = realMachine.getSupervisorMemory();
         inputScreen = realMachine.getScreen().getScreenForRealMachine().getConsole();
@@ -59,40 +56,39 @@ public class PrintLine extends ProcessInterface {
         switch (IC) {
             case 0:
                 IC++;
-                resourceDistributor.ask(PRINTLINE,this);
+                resourceDistributor.ask(PRINTLINE, this);
                 break;
             case 1:
-                IC=0;
+                IC = 0;
                 Resource resource = resourceDistributor.get(PRINTLINE);
-                VirtualMachine virtualMachine = (VirtualMachine)resource.get(0);
-                List<Object> elements = (List<Object>)resource.get(1);
+                VirtualMachine virtualMachine = (VirtualMachine) resource.get(0);
+                List<Object> elements = (List<Object>) resource.get(1);
                 String state = elements.get(0).toString();
-                switch (state)
-                {
+                switch (state) {
                     case "INPUT":
                         String address = (String) elements.get(1);
                         outputScreen.append("TASK ID : " + virtualMachine.getTaskID() + " ");
                         read();
                         //turi pranesti apie ivedima ir jo laukti
-                        for (int i = 0; i<MULTIPLE; i++){
-                            int addr = Integer.parseInt(address, 16)+i;
+                        for (int i = 0; i < MULTIPLE; i++) {
+                            int addr = Integer.parseInt(address, 16) + i;
                             virtualMachine.getInputBuffer().add(virtualMachine.bufferElementsFactory(new Word(addr)
-                                    ,new Word(inputLines.get(i), Word.WORD_TYPE.NUMERIC)));
+                                    , new Word(inputLines.get(i), Word.WORD_TYPE.NUMERIC)));
                         }
                         resourceDistributor.disengage(FROM_PRINTLINE);
                         break;
                     case "OUTPUT":
                         String nextState = elements.get(1).toString();
-                        switch (nextState){
+                        switch (nextState) {
                             case "WORDS":
                                 virtualMachine.getOutputBuffer().clear();
                                 break;
                             case "REGISTERS":
                                 CPU cpu = virtualMachine.getCpu();
-                                outputScreen.append("TASK ID : " + virtualMachine.getTaskID()+'\n');
-                                outputScreen.append("RL ---> " +  cpu.getRL().toString()+'\n');
-                                outputScreen.append("RH ---> " +  cpu.getRH().toString()+'\n');
-                                outputScreen.append("C ---> " +  cpu.getC().toString()+'\n');
+                                outputScreen.append("TASK ID : " + virtualMachine.getTaskID() + '\n');
+                                outputScreen.append("RL ---> " + cpu.getRL().toString() + '\n');
+                                outputScreen.append("RH ---> " + cpu.getRH().toString() + '\n');
+                                outputScreen.append("C ---> " + cpu.getC().toString() + '\n');
                                 break;
                         }
                         resourceDistributor.disengage(FROM_PRINTLINE);
@@ -105,14 +101,14 @@ public class PrintLine extends ProcessInterface {
 
 
     public void printHalt(String name) {
-        outputScreen.append("HALT ---> " +  name +'\n');
+        outputScreen.append("HALT ---> " + name + '\n');
     }
 
     public void read() {
         realMachine.getScreen().getTabbs().setSelectedIndex(0);
-        outputScreen.append("READ ---> "+MULTIPLE+ " SYMBOLS " + '\n');
+        outputScreen.append("READ ---> " + MULTIPLE + " SYMBOLS " + '\n');
         button.setVisible(true);
-        synchronized (waitingForInput){
+        synchronized (waitingForInput) {
             try {
                 waitingForInput.wait();
             } catch (InterruptedException e) {
@@ -135,7 +131,7 @@ public class PrintLine extends ProcessInterface {
                 try {
                     inputLines = lines;
                     button.setVisible(false);
-                    synchronized (waitingForInput){
+                    synchronized (waitingForInput) {
                         waitingForInput.notifyAll();
                     }
                 } catch (Exception ex) {
@@ -151,22 +147,22 @@ public class PrintLine extends ProcessInterface {
     private static final String ALL_GOOD = "ALL GOOD";
 
     private boolean validation(List<String> input) {
-        String command  = "READ";
+        String command = "READ";
         if (input.size() == 0) { // no input
             System.out.println(NO_INPUT);
-            outputScreen.append(command + " ----------------- > " + NO_INPUT +'\n');
+            outputScreen.append(command + " ----------------- > " + NO_INPUT + '\n');
             return false;
         } else if (input.size() % MULTIPLE != 0) { // not multiple of 16
             System.out.println(NOT_MULTIPLE_OF_16);
-            outputScreen.append(command + " ----------------- > " + NOT_MULTIPLE_OF_16 +'\n');
+            outputScreen.append(command + " ----------------- > " + NOT_MULTIPLE_OF_16 + '\n');
             return false;
         } else if (checkWordLength(input)) { // word length more than 6
             System.out.println(WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1);
-            outputScreen.append(command + " ----------------- > " + WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1 +'\n');
+            outputScreen.append(command + " ----------------- > " + WORD_LENGTH_MORE_THAN_6_OR_LESS_THAN_1 + '\n');
             return false;
         } else {
             System.out.println(ALL_GOOD);
-            outputScreen.append(command + " ----------------- > " + ALL_GOOD +'\n');
+            outputScreen.append(command + " ----------------- > " + ALL_GOOD + '\n');
             return true;
         }
     }
