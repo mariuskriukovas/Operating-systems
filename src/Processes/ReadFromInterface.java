@@ -19,6 +19,7 @@ import static Processes.ProcessPlaner.looop;
 import static Processes.ReadFromInterface.Situation.CREATEVM;
 import static Processes.ReadFromInterface.Situation.OSEND;
 import static Processes.ReadFromInterface.Situation.RUNALL;
+import static Resources.ResourceEnum.Name.OS_END;
 import static Resources.ResourceEnum.Name.START_EXECUTION;
 import static Resources.ResourceEnum.Name.SUPERVISOR_MEMORY;
 import static Resources.ResourceEnum.Name.TASK_COMPLETED;
@@ -36,7 +37,6 @@ public class ReadFromInterface extends ProcessInterface {
     private final JTextArea inputScreen;
     private final JTextArea outputScreen;
     private final JButton button;
-    int IC = 0;
 
     String message;
 
@@ -98,6 +98,9 @@ public class ReadFromInterface extends ProcessInterface {
         } else if (command.equalsIgnoreCase("OSEND")) {
             outputScreen.append(command + " ----------------- > " + command + '\n');
             resourceDistributor.disengage(USER_INPUT, OSEND);
+            synchronized (looop) {
+                looop.notifyAll();
+            }
         } else {
             outputScreen.append("Sorry can not understand you :( " + '\n');
         }
@@ -129,6 +132,7 @@ public class ReadFromInterface extends ProcessInterface {
                         resourceDistributor.disengage(TASK_IN_SUPERVISOR_MEMORY);
                         break;
                     case OSEND:
+                        resourceDistributor.disengage(OS_END);
                         break;
                 }
                 break;

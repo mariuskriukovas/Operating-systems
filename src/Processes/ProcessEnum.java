@@ -14,7 +14,6 @@ public class ProcessEnum {
     public static final int VIRTUAL_MACHINE_PRIORITY = 40;
     public static final int READ_FROM_INTERFACE_PRIORITY = 2;
 
-
     public enum Name {
         REAL_MACHINE,
         JOB_GORVERNOR,

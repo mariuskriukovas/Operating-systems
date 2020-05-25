@@ -16,7 +16,6 @@ import static Tools.Constants.ANSI_RED;
 
 public class MainProc extends ProcessInterface {
 
-    private int IC = 0;
     private int TaskCounter = 0;
 
     public MainProc(RealMachine father, ProcessPlaner planner, ResourceDistributor distributor) {

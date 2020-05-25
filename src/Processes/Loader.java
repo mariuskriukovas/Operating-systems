@@ -18,7 +18,6 @@ public class Loader extends ProcessInterface {
     private final RealMachine realMachine;
     private final Memory internalMemory;
     private final Memory externalMemory;
-    private int IC = 0;
 
     public Loader(RealMachine father, ProcessPlaner planner, ResourceDistributor distributor) {
         super(father, BLOCKED, LOADER_PRIORITY, LOADER, planner, distributor);

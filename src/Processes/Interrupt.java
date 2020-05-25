@@ -21,8 +21,6 @@ import static Tools.Constants.SYSTEM_MODE.SUPERVISOR_MODE;
 
 public class Interrupt extends ProcessInterface {
 
-    int IC = 0;
-
     public Interrupt(RealMachine father, ProcessPlaner planner, ResourceDistributor distributor) {
         super(father, ProcessEnum.State.BLOCKED, INTERRUPT_PRIORITY, INTERRUPT, planner, distributor);
         new Resource(this, PROCESS_INTERRUPT, DYNAMIC);

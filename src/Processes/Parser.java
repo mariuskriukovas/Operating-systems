@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import static Processes.ProcessEnum.Name.PARSER;
+import static Processes.ProcessEnum.PARSER_PRIORITY;
+import static Processes.ProcessEnum.State.BLOCKED;
 import static Resources.ResourceEnum.Name.SUPERVISOR_MEMORY;
 import static Resources.ResourceEnum.Name.TASK_COMPLETED;
 import static Resources.ResourceEnum.Name.TASK_IN_SUPERVISOR_MEMORY;
@@ -22,11 +24,10 @@ public class Parser extends ProcessInterface {
 
     private final ArrayList<Command> dataSegment;
     private final ArrayList<Command> codeSegment;
-    private int IC = 0;
 
     public Parser(ProcessInterface father, ProcessPlaner planner, ResourceDistributor distributor) {
 
-        super(father, ProcessEnum.State.BLOCKED, ProcessEnum.PARSER_PRIORITY, PARSER, planner, distributor);
+        super(father, BLOCKED, PARSER_PRIORITY, PARSER, planner, distributor);
 
         new Resource(this, TASK_PARAMETERS_IN_SUPERVISOR_MEMORY, DYNAMIC);
 

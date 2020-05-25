@@ -42,8 +42,6 @@ public class JobGorvernor extends ProcessInterface {
     private final String taskName;
     private final int externalMemoryBegin;
     private VirtualMachine myVirtualMachine;
-    private int IC = 0;
-
 
     public JobGorvernor(MainProc father, ProcessPlaner planner, ResourceDistributor distributor, Resource task) {
         super(father, BLOCKED, JobGorvernorPriority, JOB_GORVERNOR, planner, distributor);

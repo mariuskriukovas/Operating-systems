@@ -51,6 +51,7 @@ public class RealMachine extends ProcessInterface {
         interrupt = new Interrupt(this, processPlaner, distributor);
 
         setActive(true);
+        setPrepared(true);
 
         readFromInterface.setPrepared(true);
         mainProc.setPrepared(true);
@@ -70,7 +71,24 @@ public class RealMachine extends ProcessInterface {
     @Override
     public void executeTask() {
         super.executeTask();
-        resourceDistributor.ask(OS_END, this);
+        switch(IC) {
+            case 0:
+                IC++;
+                resourceDistributor.ask(OS_END, this);
+                break;
+            case 1:
+                screen.getScreenForRealMachine().getScreen().append("EXITING: " + '\n');
+                try {
+                    for (ProcessInterface proc : createdProcesses) {
+                        screen.getScreenForRealMachine().getScreen().append("DESTROYING: " + proc.getName() + '\n');
+                        Thread.sleep(300);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.exit(0);
+                break;
+        }
     }
 
     public Memory getExternalMemory() {

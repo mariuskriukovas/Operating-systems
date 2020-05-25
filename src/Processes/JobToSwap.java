@@ -27,7 +27,6 @@ public class JobToSwap extends ProcessInterface {
 
     private static int TASKID = VIRTUAL_MACHINE_PRIORITY;
     private final RealMachine realMachine;
-    private int IC = 0;
 
     public JobToSwap(RealMachine father, ProcessPlaner processPlaner, ResourceDistributor distributor) {
         super(father, ProcessEnum.State.BLOCKED, JOB_TO_SWAP_PRIORITY, JOB_TO_SWAP, processPlaner, distributor);

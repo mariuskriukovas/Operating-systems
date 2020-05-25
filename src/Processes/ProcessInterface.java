@@ -20,6 +20,7 @@ public abstract class ProcessInterface {
     protected State state;
     protected Name name;
     protected int priority;
+    protected int IC = 0;
 
     public ProcessInterface(ProcessInterface father, State state, int priority,
                             Name name, ProcessPlaner planner, ResourceDistributor distributor) {

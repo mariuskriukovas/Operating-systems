@@ -24,7 +24,6 @@ public class Swapping extends ProcessInterface {
     private final Memory internalMemory;
     private final Memory externalMemory;
     private final SupervisorMemory supervisorMemory;
-    private int IC = 0;
 
     public Swapping(RealMachine father, ProcessPlaner planner, ResourceDistributor distributor) {
 
