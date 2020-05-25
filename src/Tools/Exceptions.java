@@ -1,13 +1,15 @@
 package Tools;
 
+import Tools.Constants.PROGRAM_INTERRUPTION;
 
 public class Exceptions {
-    public static class ProgramInteruptionException extends Exception
-    {
-        Constants.PROGRAM_INTERRUPTION program_interruption;
-        public ProgramInteruptionException(Constants.PROGRAM_INTERRUPTION program_interruption){
-            super(program_interruption.name());
-            this.program_interruption = program_interruption;
+
+    public static class ProgramInteruptionException extends Exception {
+        PROGRAM_INTERRUPTION interruption;
+
+        public ProgramInteruptionException(PROGRAM_INTERRUPTION interruption) {
+            super(interruption.name());
+            this.interruption = interruption;
         }
 
         @Override
@@ -15,30 +17,28 @@ public class Exceptions {
             super.printStackTrace();
         }
 
-        public Constants.PROGRAM_INTERRUPTION getReason(){
-            return program_interruption;
+        public PROGRAM_INTERRUPTION getReason() {
+            return interruption;
         }
     }
 
-    public static class StackPointerException extends ProgramInteruptionException
-    {
-        public StackPointerException(Constants.PROGRAM_INTERRUPTION program_interruption) {
-            super(program_interruption);
+    public static class StackPointerException extends ProgramInteruptionException {
+        public StackPointerException(PROGRAM_INTERRUPTION interruption) {
+            super(interruption);
         }
     }
 
-    public static class InstructionPointerException extends ProgramInteruptionException
-    {
-        public InstructionPointerException(Constants.PROGRAM_INTERRUPTION program_interruption) {
-            super(program_interruption);
+    public static class InstructionPointerException extends ProgramInteruptionException {
+        public InstructionPointerException(PROGRAM_INTERRUPTION interruption) {
+            super(interruption);
         }
     }
 
-    public static class WrongAddressException extends ProgramInteruptionException
-    {
+    public static class WrongAddressException extends ProgramInteruptionException {
         private final Word address;
-        public WrongAddressException(Constants.PROGRAM_INTERRUPTION program_interruption, Word address) {
-            super(program_interruption);
+
+        public WrongAddressException(PROGRAM_INTERRUPTION interruption, Word address) {
+            super(interruption);
             this.address = address;
         }
 

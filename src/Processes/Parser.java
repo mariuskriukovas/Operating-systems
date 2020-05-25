@@ -1,16 +1,22 @@
 package Processes;
 
+import Components.SupervisorMemory;
 import Resources.Resource;
 import Resources.ResourceDistributor;
 import Resources.ResourceEnum;
-import Components.SupervisorMemory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import static Processes.ProcessEnum.Name.PARSER;
-import static Resources.ResourceEnum.Name.*;
+import static Processes.ProcessEnum.PARSER_PRIORITY;
+import static Processes.ProcessEnum.State.BLOCKED;
+import static Resources.ResourceEnum.Name.SUPERVISOR_MEMORY;
+import static Resources.ResourceEnum.Name.TASK_COMPLETED;
+import static Resources.ResourceEnum.Name.TASK_IN_SUPERVISOR_MEMORY;
+import static Resources.ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY;
+import static Resources.ResourceEnum.Type.*;
 
 public class Parser extends ProcessInterface {
 
@@ -19,17 +25,14 @@ public class Parser extends ProcessInterface {
     private final ArrayList<Command> dataSegment;
     private final ArrayList<Command> codeSegment;
 
-    public Parser(ProcessInterface father, ProcessPlaner processPlaner,  ResourceDistributor resourceDistributor){
+    public Parser(ProcessInterface father, ProcessPlaner planner, ResourceDistributor distributor) {
 
-        super(father, ProcessEnum.State.BLOCKED,  ProcessEnum.PARSER_PRIORITY, PARSER,processPlaner, resourceDistributor);
+        super(father, BLOCKED, PARSER_PRIORITY, PARSER, planner, distributor);
 
-
-        new Resource(this, ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY, ResourceEnum.Type.DYNAMIC);
-
+        new Resource(this, TASK_PARAMETERS_IN_SUPERVISOR_MEMORY, DYNAMIC);
 
         dataSegment = new ArrayList<Command>(100);
         codeSegment = new ArrayList<Command>(100);
-
     }
 
     public void parseFile(String fileLocation) {
@@ -63,26 +66,61 @@ public class Parser extends ProcessInterface {
 
         for (int i = dataSegmentIndex + 1; i < codeSegmentIndex; i++) {
             String parsed = checkCommand(fileContent.get(i));
-            dataSegment.add(new Command(i-1, parsed));
-//            System.out.println(i-1+" : "+parsed);
+            dataSegment.add(new Command(i - 1, parsed));
         }
-
         int address = 0;
         for (int i = codeSegmentIndex + 1; i < fileContent.size(); i++) {
             String parsed = checkCommand(fileContent.get(i));
-//            System.out.println(address+" : "+parsed);
             codeSegment.add(new Command(address, parsed));
             address++;
         }
-
     }
 
-    public class Command
-    {
+    public ArrayList<Command> getCodeSegment() {
+        return codeSegment;
+    }
+
+    public ArrayList<Command> getDataSegment() {
+        return dataSegment;
+    }
+
+    @Override
+    public void executeTask() {
+        super.executeTask();
+
+        switch (IC) {
+            case 0:
+                IC++;
+                resourceDistributor.ask(TASK_IN_SUPERVISOR_MEMORY, this);
+                break;
+            case 1:
+                IC++;
+                SupervisorMemory supervisorMemory = (SupervisorMemory) resourceDistributor.get(SUPERVISOR_MEMORY);
+                String fileName = supervisorMemory.getFileList().getFirst();
+                parseFile(fileName);
+                if (dataSegment.size() > 0) {
+                    supervisorMemory.getDataSegs().put(fileName, dataSegment);
+                    if (codeSegment.size() > 0) {
+                        IC = 0;
+                        supervisorMemory.getCodeSegs().put(fileName, codeSegment);
+                        resourceDistributor.disengage(TASK_PARAMETERS_IN_SUPERVISOR_MEMORY, fileName);
+                    } else {
+                        IC = 0;
+                        resourceDistributor.disengage(TASK_COMPLETED, " Nekorektiškas užduoties failas");
+                    }
+                } else {
+                    IC = 0;
+                    resourceDistributor.disengage(TASK_COMPLETED, " Nekorektiškas užduoties failas");
+                }
+                break;
+        }
+    }
+
+    public class Command {
         int position;
         String value;
-        Command(int pos, String val)
-        {
+
+        Command(int pos, String val) {
             position = pos;
             value = val;
         }
@@ -98,57 +136,6 @@ public class Parser extends ProcessInterface {
         @Override
         public String toString() {
             return position + " : " + value;
-        }
-    }
-
-    public ArrayList<Command> getCodeSegment() { return codeSegment; }
-    public ArrayList<Command> getDataSegment() {
-        return dataSegment;
-    }
-
-    private int IC = 0;
-
-    @Override
-    public void executeTask() {
-        super.executeTask();
-
-        switch (IC)
-        {
-            case 0:
-                IC++;
-                //Blokavimasis laukiant “Užduotis supervizorinėje atmintyje” resurso
-                resourceDistributor.ask(TASK_IN_SUPERVISOR_MEMORY,this);
-                break;
-            case 1:
-                IC++;
-                //Nuskaitomas resurso pranesime nurodytas failas.
-                SupervisorMemory supervisorMemory = (SupervisorMemory) resourceDistributor.get(SUPERVISOR_MEMORY);
-                String fileName = supervisorMemory.getFileList().getFirst();
-                parseFile(fileName);
-                //Ar failas turi antrastę DATSEG ?
-                if(dataSegment.size()>0) {
-                    //taip
-                    //Supervizorinėje atmintyje išsaugomas užduoties duomenų segentas.
-                    supervisorMemory.getDataSegs().put(fileName,dataSegment);
-                    if(codeSegment.size()>0)
-                    {
-                        IC = 0;
-                        //Supervizorinėje atmintyje išsaugomas užduoties kodo segentas.
-                        supervisorMemory.getCodeSegs().put(fileName,codeSegment);
-                        //Atlaisvinamas “Užduoties vykdymo parametrai supervizorinėje atmintyje” resursas.
-                        resourceDistributor.disengage(ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY,fileName);
-                    }
-                    else {
-                        IC = 0;
-                        //Atlaisvinamas  "Užduotis įvykdyta"  resursas su pranešimu " Nekorektiškas užduoties failas"
-                        resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  " Nekorektiškas užduoties failas");
-                    }
-                }else {
-                    IC = 0;
-                    //Atlaisvinamas  "Užduotis įvykdyta"  resursas su pranešimu " Nekorektiškas užduoties failas"
-                    resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED,  " Nekorektiškas užduoties failas");
-                }
-                break;
         }
     }
 }

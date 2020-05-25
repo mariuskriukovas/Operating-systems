@@ -25,7 +25,7 @@ public class ResourceEnum {
         EXTERNAL_MEMORY_DISENGAGED,
         FROM_SWAPING,
         WAIT_UNTIL_DESTRUCTION,
-        }
+    }
 
     public enum Type {
         STATIC,

@@ -1,60 +1,56 @@
 package Processes;
 
+import Processes.ProcessEnum.State;
+
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static Processes.ProcessEnum.Name.READ_FROM_INTERFACE;
 import static Tools.Constants.ANSI_BLACK;
 import static Tools.Constants.ANSI_RED;
+import static java.util.Comparator.comparing;
 
 public class ProcessPlaner {
 
     public static Integer looop = 1;
 
     private final ArrayList<ProcessInterface> processList;
+    private Integer nextStep = 0;
 
-    public ProcessPlaner(){
+    public ProcessPlaner() {
         processList = new ArrayList<ProcessInterface>(10);
     }
 
-    public ProcessInterface findActive(){
-        return processList.stream().filter(x->x.isActive())
+    public ProcessInterface findActive() {
+        return processList.stream().filter(ProcessInterface::isActive)
                 .findFirst()
                 .get();
     }
 
-    public List<ProcessInterface> findPrepared(){
+    public List<ProcessInterface> findPrepared() {
         List<ProcessInterface> preparedList = processList.stream()
-                .filter(x -> x.isPrepared())
+                .filter(ProcessInterface::isPrepared)
                 .collect(Collectors.toList());
         return preparedList.stream()
-                .sorted(Comparator.comparing(ProcessInterface::getPriority))
+                .sorted(comparing(ProcessInterface::getPriority))
                 .collect(Collectors.toList());
     }
 
-    private Integer nextStep = 0;
-
-
-    public void runOperatingSystem(){
-        for(int i = 0; i<100000; i++)
-        {
+    public void runOperatingSystem() {
+        for (int i = 0; i < 100000; i++) {
             System.out.println(ANSI_RED + "Iteracija ---------------> " + i + ANSI_BLACK);
             plan();
         }
     }
 
-
-
-
-    public void plan(){
+    public void plan() {
         System.out.println("PLAN : ");
         ProcessInterface active = findActive();
         System.out.println("ACTIVE : " + active.getName());
 
         List<ProcessInterface> prepared = findPrepared();
-        System.out.println("ar yra pasiruosiu " + !prepared.isEmpty());
+        System.out.println("ar yra pasiruosiu " + ! prepared.isEmpty());
         if (prepared.size() > 0) {
             ProcessInterface firstPrepared = prepared.get(0);
             active.setActive(false);
@@ -70,7 +66,7 @@ public class ProcessPlaner {
                 }
             }
             System.err.println("isejo is Ypatinga situacija ");
-            ProcessInterface readFromInterface = processList.stream().filter(x->x.getName()
+            ProcessInterface readFromInterface = processList.stream().filter(x -> x.getName()
                     .equals(READ_FROM_INTERFACE.name()))
                     .findFirst()
                     .get();
@@ -79,12 +75,12 @@ public class ProcessPlaner {
         }
     }
 
-    private List<ProcessInterface> getStateList(ProcessEnum.State state){
+    private List<ProcessInterface> getStateList(State state) {
         List<ProcessInterface> preparedList = processList.stream()
                 .filter(x -> x.getState() == state)
                 .collect(Collectors.toList());
         return preparedList.stream()
-                .sorted(Comparator.comparing(ProcessInterface::getPriority))
+                .sorted(comparing(ProcessInterface::getPriority))
                 .collect(Collectors.toList());
     }
 
