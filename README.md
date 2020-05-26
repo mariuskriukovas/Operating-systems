@@ -23,3 +23,7 @@ Išorinių įrenginių būsenos.
 Turi būti galimybė atvaizduoti VM atmintį.
 Turi būti galimybė atvaizduoti RM atmintį arba nurodytą RM atminties puslapį.
 Puslapiai VM skiriami ne nuosekliai
+
+### Projektas :
+
+https://app.lucidchart.com/invitations/accept/681b3818-7c50-4eb2-ad71-44d773f64fad
