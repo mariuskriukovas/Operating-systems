@@ -7,6 +7,9 @@ import Resources.ResourceDistributor;
 
 import java.util.ArrayList;
 
+import static Tools.Constants.ANSI_BLUE;
+import static Tools.Constants.ANSI_RESET;
+
 public abstract class ProcessInterface {
     protected final ProcessInterface father;
     protected final ResourceDistributor resourceDistributor;
@@ -52,7 +55,6 @@ public abstract class ProcessInterface {
             this.father.createdProcesses.remove(this);
         }
         processPlaner.getProcessList().remove(this);
-        System.err.println("Not implemented");
     }
 
     public void stop() {
@@ -64,7 +66,6 @@ public abstract class ProcessInterface {
         }
 
         System.out.println("PO STOP : " + this);
-        processPlaner.plan();
     }
 
     public void activate() {
@@ -74,7 +75,7 @@ public abstract class ProcessInterface {
     }
 
     public void executeTask() {
-        System.out.println("EXECUTE : " + this.getName());
+        System.out.println(ANSI_BLUE + "EXECUTE : " + this.getName() + " STEP " + "("+ IC + ")" + ANSI_RESET);
     }
 
     public boolean isActive() {

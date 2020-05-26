@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static Processes.ProcessEnum.Name.READ_FROM_INTERFACE;
-import static Tools.Constants.ANSI_BLACK;
-import static Tools.Constants.ANSI_RED;
 import static java.util.Comparator.comparing;
 
 public class ProcessPlaner {
@@ -39,7 +37,7 @@ public class ProcessPlaner {
 
     public void runOperatingSystem() {
         for (int i = 0; i < 100000; i++) {
-            System.out.println(ANSI_RED + "Iteracija ---------------> " + i + ANSI_BLACK);
+            //System.out.println(ANSI_RED + "Iteracija ---------------> " + i + ANSI_BLACK);
             plan();
         }
     }
@@ -50,7 +48,7 @@ public class ProcessPlaner {
         System.out.println("ACTIVE : " + active.getName());
 
         List<ProcessInterface> prepared = findPrepared();
-        System.out.println("ar yra pasiruosiu " + ! prepared.isEmpty());
+        //System.out.println("ar yra pasiruosiu " + ! prepared.isEmpty());
         if (prepared.size() > 0) {
             ProcessInterface firstPrepared = prepared.get(0);
             active.setActive(false);

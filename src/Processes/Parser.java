@@ -3,7 +3,6 @@ package Processes;
 import Components.SupervisorMemory;
 import Resources.Resource;
 import Resources.ResourceDistributor;
-import Resources.ResourceEnum;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,11 +11,8 @@ import java.util.Scanner;
 import static Processes.ProcessEnum.Name.PARSER;
 import static Processes.ProcessEnum.PARSER_PRIORITY;
 import static Processes.ProcessEnum.State.BLOCKED;
-import static Resources.ResourceEnum.Name.SUPERVISOR_MEMORY;
-import static Resources.ResourceEnum.Name.TASK_COMPLETED;
-import static Resources.ResourceEnum.Name.TASK_IN_SUPERVISOR_MEMORY;
-import static Resources.ResourceEnum.Name.TASK_PARAMETERS_IN_SUPERVISOR_MEMORY;
-import static Resources.ResourceEnum.Type.*;
+import static Resources.ResourceEnum.Name.*;
+import static Resources.ResourceEnum.Type.DYNAMIC;
 
 public class Parser extends ProcessInterface {
 
@@ -42,6 +38,30 @@ public class Parser extends ProcessInterface {
             File file = new File(fileLocation);
             Scanner scanner = new Scanner(file);
             parse(scanner);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void parsMODE(String fileLocation) {
+        dataSegment.clear();
+        codeSegment.clear();
+        try {
+            File file = new File(fileLocation);
+            Scanner scanner = new Scanner(file);
+            parse(scanner);
+
+            for (Command c : dataSegment){
+                ((RealMachine)father).getScreen().getScreenForRealMachine().getScreen().append(
+                        c.position + " ---  > "+ c.value + "\n"
+                );
+            }
+            for (Command c : codeSegment){
+                ((RealMachine)father).getScreen().getScreenForRealMachine().getScreen().append(
+                        c.position + " ---  > "+ c.value + "\n"
+                );
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -75,6 +95,7 @@ public class Parser extends ProcessInterface {
             address++;
         }
     }
+
 
     public ArrayList<Command> getCodeSegment() {
         return codeSegment;

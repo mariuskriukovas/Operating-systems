@@ -1,11 +1,15 @@
 package Components;
 
+import Components.UI.OSFrame;
 import Components.UI.RMPanel;
+
 import Components.UI.VMPanel;
 import Processes.RealMachine;
 import Tools.Constants.*;
 import Tools.Exceptions;
 import Tools.Word;
+
+import java.util.HashMap;
 
 import static Tools.Constants.*;
 import static Tools.Constants.PROGRAM_INTERRUPTION.*;
@@ -37,17 +41,17 @@ public class CPU {
 
     private final RMPanel RMScreen;
     private final VMPanel VMScreen;
+    private final RealMachine realMachine;
 
-    public CPU(RealMachine realMachine, int id)
+    public CPU(RealMachine realMachine)
     {
-
+        this.realMachine = realMachine;
         this.externalMemory = realMachine.getExternalMemory();
         this.internalMemory = realMachine.getInternalMemory();
 
         RMScreen = realMachine.getScreen().getScreenForRealMachine();
         VMScreen = realMachine.getScreen().getScreenForVirtualMachine();
-
-        externalMemoryBegin = id;
+        descriptors = new HashMap<>(4);
     }
 
 
@@ -75,8 +79,10 @@ public class CPU {
         internalMemory.setWord(word, PTR.add(block));
     }
 
+    private int id;
+
     public int getExternalMemoryBegin() {
-        return externalMemoryBegin;
+        return id;
     }
 
     public Word getDS() {
@@ -189,25 +195,26 @@ public class CPU {
         }
     }
 
-    public void setSS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
+    public boolean setSS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
         try {
             if(test(Segment.SS, virtualAddress)){
                 setRL(virtualAddress);
-                return;
+                return true;
             }
 
             long address = SS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
             internalMemory.setWord(value, address);
+            return false;
         }catch (Exception e)
         {
             throw new Exceptions.WrongAddressException(WRONG_SS_BLOCK_ADDRESS,virtualAddress);
         }
     }
 
-    public void setDS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
+    public boolean setDS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
         if(test(Segment.DS, virtualAddress)){
             setRL(virtualAddress);
-            return;
+            return true;
         }
 
         long address = DS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
@@ -216,13 +223,14 @@ public class CPU {
         } catch (Exception e) {
             throw new Exceptions.WrongAddressException(WRONG_DS_BLOCK_ADDRESS,virtualAddress);
         }
+        return false;
     }
 
-    public void setCS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
+    public boolean setCS(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
         if(test(Segment.CS, virtualAddress))
         {
             setRL(virtualAddress);
-            return;
+            return true;
         }
 
         long address = DS.getBlockFromAddress() * 256 + virtualAddress.getWordFromAddress();
@@ -231,6 +239,7 @@ public class CPU {
         } catch (Exception e) {
             throw new Exceptions.WrongAddressException(WRONG_DS_BLOCK_ADDRESS,virtualAddress);
         }
+        return false;
     }
 
     public void setByVirtualAddress(Word virtualAddress, Word value) throws Exceptions.WrongAddressException {
@@ -257,10 +266,11 @@ public class CPU {
         RMScreen.setDSRegister(DS);
     }
 
-    private final int externalMemoryBegin;
-
     public void refresh()
     {
+        boolean saveTickMode = OSFrame.TickMode;
+
+        OSFrame.TickMode = false;
         VMScreen.setCpu(this);
         RMScreen.setPTRRegister(PTR);
         RMScreen.setDSRegister(DS);
@@ -269,7 +279,6 @@ public class CPU {
 
         RMScreen.setTIRegister(TI);
         RMScreen.setSIRegister(SI);
-        RMScreen.setMODERegister(MODE);
 
         VMScreen.setStackPointer(SP);
         VMScreen.setRHRegister(RH);
@@ -278,6 +287,9 @@ public class CPU {
         VMScreen.setPIRegister(PI);
         VMScreen.setInstructionCounter(IC);
 
+        RMScreen.setMODERegister(MODE);
+
+        OSFrame.TickMode = saveTickMode;
     }
 
     public void setSS(Word word) {
@@ -444,6 +456,14 @@ public class CPU {
     public void setMODE(SYSTEM_MODE flag) {
         RMScreen.setMODERegister(flag);
         MODE = flag;
+    }
+
+    HashMap<Integer, CPU> descriptors;
+    public CPU getDescriptor(int id){
+        CPU descriptor = new CPU(realMachine);
+        descriptor.id = id;
+        descriptors.put(id, descriptor);
+        return descriptor;
     }
 
 }

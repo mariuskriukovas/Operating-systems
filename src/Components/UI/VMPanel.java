@@ -64,8 +64,8 @@ public class VMPanel {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
-                    synchronized (VMPanel.this.visible) {
-                        VMPanel.this.visible.notify();
+                    synchronized (Components.UI.VMPanel.this.visible) {
+                        Components.UI.VMPanel.this.visible.notify();
                     }
                     System.out.println("Tick");
                 } catch (Exception e) {
@@ -100,8 +100,8 @@ public class VMPanel {
         public void keyTyped(KeyEvent keyEvent) {
             if (keyEvent.getKeyChar() == '\n') {
                 try {
-                    synchronized (VMPanel.this.visible) {
-                        VMPanel.this.visible.notify();
+                    synchronized (Components.UI.VMPanel.this.visible) {
+                        Components.UI.VMPanel.this.visible.notify();
                     }
                     System.out.println("Tick");
                 } catch (Exception e) {

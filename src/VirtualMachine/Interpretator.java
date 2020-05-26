@@ -1,9 +1,7 @@
 package VirtualMachine;
 
 import Components.CPU;
-import Tools.Constants;
 import Tools.Constants.PROGRAM_INTERRUPTION;
-import Tools.Exceptions;
 import Tools.Exceptions.InstructionPointerException;
 import Tools.Exceptions.ProgramInteruptionException;
 import Tools.Exceptions.WrongAddressException;
@@ -11,14 +9,10 @@ import Tools.Word;
 
 import java.math.BigInteger;
 
-import static Tools.Constants.CONDITIONAL_MODE.EQUAL;
-import static Tools.Constants.CONDITIONAL_MODE.LESS;
-import static Tools.Constants.CONDITIONAL_MODE.MORE;
+import static Tools.Constants.CONDITIONAL_MODE.*;
 import static Tools.Constants.PROGRAM_INTERRUPTION.DIVISION_BY_ZERO;
-import static Tools.Constants.SYSTEM_INTERRUPTION.HALT;
-import static Tools.Constants.SYSTEM_INTERRUPTION.PRINTLINE_GET;
-import static Tools.Constants.SYSTEM_INTERRUPTION.PRINTLINE_PUT;
-import static Tools.Constants.SYSTEM_INTERRUPTION.PRINTLINE_PUT_R;
+import static Tools.Constants.SYSTEM_INTERRUPTION.NONE;
+import static Tools.Constants.SYSTEM_INTERRUPTION.*;
 import static Tools.Word.WORD_TYPE.NUMERIC;
 import static java.lang.Long.parseLong;
 
@@ -70,6 +64,9 @@ public class Interpretator {
             LOADW();
         } else if (command.contains("SV")) {
             SAVE();
+        } else if (command.contains("SS")) {
+            System.out.println("------------------------------------------------------->labas");
+            SAVES();
         } else if (command.contains("GT")) {
             GET();
         } else if (command.contains("PT")) {
@@ -83,40 +80,67 @@ public class Interpretator {
         }
     }
 
-    private void PUSH() {
+    private boolean PUSH() {
         Word value = cpu.getRL().copy();
         Word address = cpu.getSP().copy();
         try {
-            cpu.setSS(address, value);
+            if(cpu.setSS(address, value))return true;
             cpu.increaseSP();
         } catch (ProgramInteruptionException e) {
             e.printStackTrace();
             PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
         }
+        return false;
     }
 
-    private void POP() {
+    private boolean POP() {
         try {
-            cpu.decreaseSP();
             Word address = cpu.getSP().copy();
-            Word value = cpu.getSS(address);
-            if (value == null) return;
+            Word value = cpu.getSS(address.add(-1));
+            if (value == null) return true;
             cpu.setRL(value);
+            cpu.decreaseSP();
         } catch (ProgramInteruptionException e) {
             e.printStackTrace();
             PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return false;
     }
+
+    boolean firstOperandRead = false;
+    boolean secondOperandRead = false;
+    long op1;
+    long op2;
+
+    private boolean getStackVariables(){
+        if(!firstOperandRead){
+            if(POP())return true;
+            firstOperandRead = true;
+        }
+        op1 = cpu.getRL().getNumber();
+        if(!secondOperandRead){
+            if(POP())return true;
+            secondOperandRead = true;
+        }
+        op2 = cpu.getRL().getNumber();
+
+        firstOperandRead = false;
+        secondOperandRead = false;
+        return false;
+    }
+
+
 
     private void ADD() {
         System.out.println("ADD()");
         try {
-            POP();
-            long op1 = cpu.getRL().getNumber();
-            POP();
-            long op2 = cpu.getRL().getNumber();
+
+            if(getStackVariables())return;
+
             long result = op1 + op2;
             long manyF = parseLong("ffffff", 16);
             if (result > manyF) {
@@ -124,10 +148,8 @@ public class Interpretator {
                 cpu.setRL(new Word(rl));
                 long rh = (result / manyF);
                 cpu.setRH(new Word(rh));
-                cpu.setC(MORE);
             } else {
                 cpu.setRL(new Word(result));
-                cpu.setC(LESS);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -137,10 +159,7 @@ public class Interpretator {
     private void SUB() {
         System.out.println("SUB()");
         try {
-            POP();
-            long op1 = cpu.getRL().getNumber();
-            POP();
-            long op2 = cpu.getRL().getNumber();
+            if(getStackVariables())return;
             long result = op1 - op2;
             cpu.setRL(new Word(result));
         } catch (Exception e) {
@@ -151,10 +170,7 @@ public class Interpretator {
     private void MUL() {
         System.out.println("MUL()");
         try {
-            POP();
-            long op1 = cpu.getRL().getNumber();
-            POP();
-            long op2 = cpu.getRL().getNumber();
+            if(getStackVariables())return;
             BigInteger op1Big = new BigInteger(Long.toString(op1));
             BigInteger op2Big = new BigInteger(Long.toString(op2));
             BigInteger result = op1Big.multiply(op2Big);
@@ -179,10 +195,7 @@ public class Interpretator {
     private void DIV() {
         System.out.println("DIV()");
         try {
-            POP();
-            long op1 = cpu.getRL().getNumber();
-            POP();
-            long op2 = cpu.getRL().getNumber();
+            if(getStackVariables())return;
             if (op2 == 0)
                 throw new ProgramInteruptionException(DIVISION_BY_ZERO);
             long div = op1 / op2;
@@ -198,14 +211,11 @@ public class Interpretator {
 
     private void CM() {
         System.out.println("CM()");
-        POP();
-        Word w1 = cpu.getRL().copy();
-        POP();
-        Word w2 = cpu.getRL().copy();
-        if (w1.getNumber() == w2.getNumber()) {
+        if(getStackVariables())return;
+        if (op1 == op2) {
             cpu.setC(EQUAL);
         } else {
-            if (w1.getNumber() < w2.getNumber()) {
+            if (op1 < op2) {
                 cpu.setC(LESS);
             } else {
                 cpu.setC(MORE);
@@ -230,7 +240,7 @@ public class Interpretator {
 
     private void JUMP() {
         System.out.println("JUMP()");
-        POP();
+        if(POP())return;
         try {
             cpu.setIC(cpu.getRL());
         } catch (InstructionPointerException e) {
@@ -358,6 +368,39 @@ public class Interpretator {
             e.printStackTrace();
             PROGRAM_INTERRUPTION interruption = e.getReason();
             cpu.setPI(interruption);
+        }
+    }
+
+    boolean loaded = false;
+    Word address;
+    Word value;
+    Word prevRL;
+
+    private void SAVES() {
+        System.out.println("SAVES()");
+        try {
+            if(!loaded){
+                prevRL = cpu.getRL().copy();
+                if(getStackVariables())return;
+                address = new Word(op1);
+                value = new Word(op2);
+                loaded= true;
+            }
+            System.out.println("Adress -----------------------> " + address.toString());
+            System.out.println("VALue -----------------------> " + value.toString());
+
+            cpu.setDS(address, value);
+            if(cpu.getSI()==NONE)
+            {
+                loaded = false;
+                cpu.setRL(prevRL);
+            }
+        } catch (ProgramInteruptionException e) {
+            e.printStackTrace();
+            PROGRAM_INTERRUPTION interruption = e.getReason();
+            cpu.setPI(interruption);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

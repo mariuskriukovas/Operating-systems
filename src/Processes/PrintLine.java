@@ -49,9 +49,6 @@ public class PrintLine extends ProcessInterface {
 
     }
 
-
-    private int IC = 0;
-
     @Override
     public void executeTask() {
         super.executeTask();

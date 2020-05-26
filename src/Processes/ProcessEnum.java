@@ -11,7 +11,7 @@ public class ProcessEnum {
     public static final int INTERRUPT_PRIORITY = 7;
     public static final int MAIN_PROC_PRIORITY = 8;
     public static final int JOB_GORVERNOR_PRIORITY = 20;
-    public static final int VIRTUAL_MACHINE_PRIORITY = 40;
+    public static final int VIRTUAL_MACHINE_PRIORITY = 1000;
     public static final int READ_FROM_INTERFACE_PRIORITY = 2;
 
     public enum Name {

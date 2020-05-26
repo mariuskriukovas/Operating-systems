@@ -15,21 +15,8 @@ import static Processes.MainProc.State.TASK_DELETE;
 import static Processes.ProcessEnum.JOB_GORVERNOR_PRIORITY;
 import static Processes.ProcessEnum.Name.JOB_GORVERNOR;
 import static Processes.ProcessEnum.State.BLOCKED;
-import static Resources.ResourceEnum.Name.EXTERNAL_MEMORY_DISENGAGED;
-import static Resources.ResourceEnum.Name.FROM_INTERUPT;
-import static Resources.ResourceEnum.Name.FROM_PRINTLINE;
-import static Resources.ResourceEnum.Name.FROM_SWAPING;
-import static Resources.ResourceEnum.Name.INTERNAL_MEMORY;
-import static Resources.ResourceEnum.Name.LOADING_PACKAGE;
-import static Resources.ResourceEnum.Name.PRINTLINE;
-import static Resources.ResourceEnum.Name.SWAPPING;
-import static Resources.ResourceEnum.Name.TASK_IN_DRUM;
-import static Resources.ResourceEnum.Name.WAIT_UNTIL_DESTRUCTION;
-import static Tools.Constants.ANSI_BLACK;
-import static Tools.Constants.ANSI_BLUE;
-import static Tools.Constants.CODE_SEGMENT;
-import static Tools.Constants.DATA_SEGMENT;
-import static Tools.Constants.STACK_SEGMENT;
+import static Resources.ResourceEnum.Name.*;
+import static Tools.Constants.*;
 import static VirtualMachine.VirtualMachine.VirtualMachinePriority;
 
 public class JobGorvernor extends ProcessInterface {
@@ -49,13 +36,12 @@ public class JobGorvernor extends ProcessInterface {
 
         RealMachine realMachine = (RealMachine) father.father;
         externalMemoryBegin = (int) task.get(3);
-        cpu = new CPU(realMachine, externalMemoryBegin);
+        cpu = realMachine.getDescriptor(externalMemoryBegin);
 
         supervisorMemory = realMachine.getSupervisorMemory();
 
         taskName = (String) task.get(1);
         taskID = (int) task.get(2);
-        System.out.println(ANSI_BLUE + "ID ------------------------------------------------>" + taskID + ANSI_BLACK);
         task.getElements().pop();
         setPrepared(true);
     }
@@ -122,8 +108,12 @@ public class JobGorvernor extends ProcessInterface {
                 IC = 3;
                 resourceDistributor.ask(FROM_SWAPING, this);
                 break;
+            case 8:
+                IC++;
+                resourceDistributor.disengage(TASK_IN_DRUM, TASK_DELETE, taskID);
+                break;
             case 9:
-                IC = 33;
+                this.setPrepared(false);
                 resourceDistributor.ask(WAIT_UNTIL_DESTRUCTION, this);
                 break;
         }
@@ -141,10 +131,11 @@ public class JobGorvernor extends ProcessInterface {
                 IC = 3;
                 break;
             case "HALT":
-                IC = 9;
+                IC = 8;
                 myVirtualMachine.setPrepared(false);
-                this.setPrepared(false);
-                resourceDistributor.disengage(TASK_IN_DRUM, TASK_DELETE, taskID);
+                //this.setPriority(getPriority()*100);
+                cleanThisVirtualMachine();
+                resourceDistributor.disengage(EXTERNAL_MEMORY_DISENGAGED);
                 break;
             case "PRINTLINE":
                 IC = 6;
@@ -171,7 +162,13 @@ public class JobGorvernor extends ProcessInterface {
         int ds_internal = internalMemory.getFreeSpaceBeginAddress();
         int cs_internal = internalMemory.getFreeSpaceBeginAddress();
 
-        System.out.println(ANSI_BLUE + "ss_internal --------------->" + ss_internal + ANSI_BLACK);
+        ((RealMachine)father.father).getScreen().getScreenForRealMachine().getScreen().append(
+                "TASK ID : " + taskID  + '\n'+
+                         " SS external ---- >  " + externalMemoryBegin + '\n'+
+                         " DS external ---- >  " + (externalMemoryBegin +(DATA_SEGMENT / 256)) + '\n'+
+                         " CS external ---- >  " + (externalMemoryBegin +(CODE_SEGMENT / 256)) + '\n'
+        );
+
 
         try {
             cpu.setSS(new Word(ss_internal * 256 + (STACK_SEGMENT / 256)));
@@ -186,12 +183,6 @@ public class JobGorvernor extends ProcessInterface {
 
     public int getTaskID() {
         return taskID;
-    }
-
-    @Override
-    public void destroy() {
-        cleanThisVirtualMachine();
-        resourceDistributor.disengage(EXTERNAL_MEMORY_DISENGAGED);
     }
 
     public void cleanThisVirtualMachine() {

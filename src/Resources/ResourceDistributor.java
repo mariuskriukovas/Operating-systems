@@ -74,5 +74,6 @@ public class ResourceDistributor {
         waitingList.get(resource).stream().forEach(x -> {
             x.setPrepared(true);
         });
+        waitingList.get(resource).clear();
     }
 }

@@ -21,17 +21,17 @@ public  class Resource {
     private final ArrayList<ProcessInterface> waitingList;
 
     public Resource(ProcessInterface father, Name name, Type type){
-            this.fatherProcess = father;
-            this.name = name;
-            this.type = type;
+
+        this.fatherProcess = father;
+        this.name = name;
+        this.type = type;
 
         System.out.println("CREATE RES : "+  name);
-
         fatherProcess.getResourceDistributor().addResource(this);
-            fatherProcess.addResource(this);
-            elements = new ArrayDeque<>(10);
-            elementList = new ArrayList<>(100);
-            waitingList = new ArrayList<>(100);
+        fatherProcess.addResource(this);
+        elements = new ArrayDeque<>(10);
+        elementList = new ArrayList<>(100);
+        waitingList = new ArrayList<>(100);
     }
 
     public void destroy(){

@@ -1,18 +1,16 @@
 package Processes;
 
+import Components.CPU;
 import Components.Memory;
 import Components.SupervisorMemory;
 import Components.UI.OSFrame;
 import Resources.Resource;
 import Resources.ResourceDistributor;
-import Resources.ResourceEnum;
 import Resources.ResourceEnum.Type;
 
 import static Processes.ProcessEnum.Name.REAL_MACHINE;
 import static Processes.ProcessEnum.REAL_MACHINE_PRIORITY;
-import static Resources.ResourceEnum.Name.EXTERNAL_MEMORY;
-import static Resources.ResourceEnum.Name.INTERNAL_MEMORY;
-import static Resources.ResourceEnum.Name.OS_END;
+import static Resources.ResourceEnum.Name.*;
 
 public class RealMachine extends ProcessInterface {
 
@@ -29,6 +27,7 @@ public class RealMachine extends ProcessInterface {
     private final ReadFromInterface readFromInterface;
     private final MainProc mainProc;
     private final Interrupt interrupt;
+    private final CPU cpu;
 
 
     public RealMachine(ProcessPlaner processPlaner, ResourceDistributor distributor) {
@@ -38,6 +37,7 @@ public class RealMachine extends ProcessInterface {
 
         screen = new OSFrame(this);
         supervisorMemory = new SupervisorMemory(this);
+        cpu = new CPU(this);
 
         new Resource(this, OS_END, Type.DYNAMIC);
 
@@ -62,6 +62,7 @@ public class RealMachine extends ProcessInterface {
         printLine.setPrepared(true);
         swapping.setPrepared(true);
 
+        cpu.refresh();
         screen.setVisible(true);
         screen.setReady(true);
 
@@ -110,4 +111,12 @@ public class RealMachine extends ProcessInterface {
     public Loader getLoader() {
         return loader;
     }
+    public Parser getParser() {
+        return parser;
+    }
+
+    public CPU getDescriptor(int id){
+        return cpu.getDescriptor(id);
+    }
+
 }

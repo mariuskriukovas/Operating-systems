@@ -48,7 +48,7 @@ public class Swapping extends ProcessInterface {
                 resourceDistributor.ask(Name.SWAPPING, this);
                 break;
             case 1:
-                IC++;
+                IC = 0;
                 Resource resource = resourceDistributor.get(Name.SWAPPING);
                 vm = (VirtualMachine) resource.get(0);
                 CPU cpu = vm.getCpu();
@@ -65,8 +65,6 @@ public class Swapping extends ProcessInterface {
                         swapSS(block, cpu);
                         break;
                 }
-            case 2:
-                IC = 0;
                 resourceDistributor.disengage(FROM_SWAPING);
                 break;
         }

@@ -176,7 +176,7 @@ public class VirtualMachine extends ProcessInterface {
                     System.out.println(ANSI_RED + "---------------------------------------  > " + command + ANSI_BLACK);
                     interpretator.execute(command);
                     System.out.println(ANSI_RED + " RL: " + cpu.getRL() + "  RH:  " + cpu.getRH() + " C: " + cpu.getC() + ANSI_BLACK);
-                    if (! cpu.getSI().equals(NONE)) {
+                    if (!cpu.getSI().equals(NONE)) {
                         break;
                     }
                     testTimer();

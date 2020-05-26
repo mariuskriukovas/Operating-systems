@@ -85,7 +85,11 @@ public class ReadFromInterface extends ProcessInterface {
             synchronized (looop) {
                 looop.notifyAll();
             }
-
+        }
+        else if (command.equalsIgnoreCase("PARSE")) {
+            outputScreen.append(command + " ----------------- > " + '\n');
+            String[] words = inputScreen.getText().split("\\s+");
+            ((RealMachine)father).getParser().parsMODE(words[1]);
         } else if (command.equalsIgnoreCase("TICKMODE")) {
             String action = lines.get(1);
             if (action.equalsIgnoreCase("ON")) {
@@ -114,7 +118,6 @@ public class ReadFromInterface extends ProcessInterface {
         switch (IC) {
             case 0:
                 IC++;
-                System.out.println(ANSI_RED + " --------------->1" + ANSI_BLACK);
                 resourceDistributor.ask(USER_INPUT, this);
                 break;
             case 1:
@@ -128,8 +131,13 @@ public class ReadFromInterface extends ProcessInterface {
                     case CREATEVM:
                         SupervisorMemory memory = (SupervisorMemory) resourceDistributor.get(SUPERVISOR_MEMORY);
                         String[] words = inputScreen.getText().split("\\s+");
-                        memory.getFileList().push(words[1]);
-                        resourceDistributor.disengage(TASK_IN_SUPERVISOR_MEMORY);
+                        if(words.length>1)
+                        {
+                            memory.getFileList().push(words[1]);
+                            resourceDistributor.disengage(TASK_IN_SUPERVISOR_MEMORY);
+                        }else {
+                            IC = 0;
+                        }
                         break;
                     case OSEND:
                         resourceDistributor.disengage(OS_END);
