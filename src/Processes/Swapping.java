@@ -14,9 +14,7 @@ import static Processes.ProcessEnum.Name.SWAPPING;
 import static Processes.ProcessEnum.SWAPPING_PRIORITY;
 import static Processes.ProcessEnum.State.BLOCKED;
 import static Resources.ResourceEnum.Name.FROM_SWAPING;
-import static Tools.Constants.CODE_SEGMENT;
-import static Tools.Constants.DATA_SEGMENT;
-import static Tools.Constants.STACK_SEGMENT;
+import static Tools.Constants.*;
 
 public class Swapping extends ProcessInterface {
 
@@ -31,6 +29,8 @@ public class Swapping extends ProcessInterface {
 
         new Resource(this, FROM_SWAPING, Type.DYNAMIC);
         new Resource(this, Name.SWAPPING, Type.DYNAMIC);
+        new Resource(this, Name.CHANEL_DEVICE, Type.DYNAMIC);
+
 
         this.realMachine = father;
         internalMemory = realMachine.getInternalMemory();
@@ -48,7 +48,13 @@ public class Swapping extends ProcessInterface {
                 resourceDistributor.ask(Name.SWAPPING, this);
                 break;
             case 1:
+                IC++;
+                System.out.println(ANSI_BLUE + "BLOKUOKIS LAUKIANT KANALU IRENGINIO" + ANSI_BLACK);
+                resourceDistributor.ask(Name.CHANEL_DEVICE, this);
+                break;
+            case 2:
                 IC = 0;
+                System.out.println(ANSI_RED + "VYKDYK SWAPINGA " + ANSI_BLACK);
                 Resource resource = resourceDistributor.get(Name.SWAPPING);
                 vm = (VirtualMachine) resource.get(0);
                 CPU cpu = vm.getCpu();

@@ -16,19 +16,9 @@ import static Processes.ProcessEnum.Name.READ_FROM_INTERFACE;
 import static Processes.ProcessEnum.READ_FROM_INTERFACE_PRIORITY;
 import static Processes.ProcessEnum.State.PREPARED;
 import static Processes.ProcessPlaner.looop;
-import static Processes.ReadFromInterface.Situation.CREATEVM;
-import static Processes.ReadFromInterface.Situation.OSEND;
-import static Processes.ReadFromInterface.Situation.RUNALL;
-import static Resources.ResourceEnum.Name.OS_END;
-import static Resources.ResourceEnum.Name.START_EXECUTION;
-import static Resources.ResourceEnum.Name.SUPERVISOR_MEMORY;
-import static Resources.ResourceEnum.Name.TASK_COMPLETED;
-import static Resources.ResourceEnum.Name.TASK_IN_SUPERVISOR_MEMORY;
-import static Resources.ResourceEnum.Name.UPLOAD_VIRTUAL_MACHINE;
-import static Resources.ResourceEnum.Name.USER_INPUT;
+import static Processes.ReadFromInterface.Situation.*;
+import static Resources.ResourceEnum.Name.*;
 import static Resources.ResourceEnum.Type.DYNAMIC;
-import static Tools.Constants.ANSI_BLACK;
-import static Tools.Constants.ANSI_RED;
 
 public class ReadFromInterface extends ProcessInterface {
 
@@ -153,7 +143,7 @@ public class ReadFromInterface extends ProcessInterface {
                 message = (String) resourceDistributor.get(TASK_COMPLETED).getElementList().toString();
                 outputScreen.setForeground(Color.BLUE);
                 outputScreen.append(message + '\n');
-                System.out.println(ANSI_RED + "TURI_ATEITI_IKI_CIA --------------->" + message + teest + ANSI_BLACK);
+                //System.out.println(ANSI_RED + "TURI_ATEITI_IKI_CIA --------------->" + message + teest + ANSI_BLACK);
                 teest++;
                 break;
         }

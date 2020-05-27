@@ -65,7 +65,6 @@ public class Interpretator {
         } else if (command.contains("SV")) {
             SAVE();
         } else if (command.contains("SS")) {
-            System.out.println("------------------------------------------------------->labas");
             SAVES();
         } else if (command.contains("GT")) {
             GET();
@@ -386,8 +385,9 @@ public class Interpretator {
                 value = new Word(op2);
                 loaded= true;
             }
-            System.out.println("Adress -----------------------> " + address.toString());
-            System.out.println("VALue -----------------------> " + value.toString());
+
+            //System.out.println("Adress -----------------------> " + address.toString());
+            //System.out.println("VALue -----------------------> " + value.toString());
 
             cpu.setDS(address, value);
             if(cpu.getSI()==NONE)

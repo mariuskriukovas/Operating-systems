@@ -104,6 +104,11 @@ public class JobGorvernor extends ProcessInterface {
                 IC = 3;
                 resourceDistributor.ask(FROM_PRINTLINE, this);
                 break;
+
+            case 17:
+                IC = 7;
+                resourceDistributor.disengage(CHANEL_DEVICE);
+                break;
             case 7:
                 IC = 3;
                 resourceDistributor.ask(FROM_SWAPING, this);
@@ -146,7 +151,11 @@ public class JobGorvernor extends ProcessInterface {
                 IC = 3;
                 break;
             case "SWAPING":
-                IC = 7;
+                IC = 17;
+                this.setPriority(JobGorvernorPriority);
+                JobGorvernorPriority++;
+                myVirtualMachine.setPriority(VirtualMachinePriority);
+                VirtualMachinePriority++;
                 resourceDistributor.disengage(SWAPPING, myVirtualMachine, resource.get(1), resource.get(2));
                 break;
         }

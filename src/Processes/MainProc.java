@@ -42,7 +42,7 @@ public class MainProc extends ProcessInterface {
                 IC = 1;
                 Resource task = resourceDistributor.get(TASK_IN_DRUM);
                 State taskState = (State) task.get(0);
-                System.out.println(ANSI_RED + "TURI_ATEITI_IKI_CIA --------------->" + taskState + ANSI_BLACK);
+                //System.out.println(ANSI_RED + "TURI_ATEITI_IKI_CIA --------------->" + taskState + ANSI_BLACK);
                 switch (taskState) {
                     case TASK_CREATED:
                         createdTasks ++;
@@ -50,8 +50,8 @@ public class MainProc extends ProcessInterface {
                         break;
                     case TASK_DELETE:
                         createdTasks--;
-                        System.out.println(ANSI_RED + "TASK_DELETE : " + createdTasks + ANSI_BLACK);
-                        //int taskID = (int) task.get(1);
+                        int taskID = (int) task.get(1);
+                        System.out.println(ANSI_RED + "TASK_DELETE : " +taskID + " LEFT:"+ createdTasks + ANSI_BLACK);
                         if(createdTasks == 0){
                             IC = 0;
                             resourceDistributor.disengage(ResourceEnum.Name.TASK_COMPLETED, "Darbas BAIGTAS !!!");
